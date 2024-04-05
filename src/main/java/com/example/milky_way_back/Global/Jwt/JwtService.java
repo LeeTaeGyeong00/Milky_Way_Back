@@ -1,4 +1,4 @@
-package com.example.milky_way_back.Member.Jwt;
+package com.example.milky_way_back.Global.Jwt;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,9 +10,6 @@ public interface JwtService {
     String creatAccessToken(String memberId);
     String createRefreshToken();
 
-    // 토큰 변동
-    void updateRefreshToken(String memberId, String refreshToken);
-    void deleteRefreshToken(String memberId);
 
     // 토큰 보내기
     void sendAccessToken(HttpServletResponse response, String accessToken);
@@ -29,5 +26,6 @@ public interface JwtService {
 
     // 유효 확인
     boolean tokenValid(String token);
+
 
 }

@@ -14,9 +14,13 @@ import java.io.IOException;
 @Slf4j
 public class LoginFailedHandler extends SimpleUrlAuthenticationFailureHandler {
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+    public void onAuthenticationFailure(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        AuthenticationException exception) throws IOException, ServletException {
+
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         response.getWriter().write("로그인 실패");
         log.info("로그인 실패");
+
     }
 }

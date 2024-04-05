@@ -1,7 +1,7 @@
 package com.example.milky_way_back.Member.Service;
 
-import com.example.milky_way_back.Member.Member;
-import com.example.milky_way_back.Member.MemberRepository;
+import com.example.milky_way_back.Member.Entity.Member;
+import com.example.milky_way_back.Member.Repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class LoginService implements UserDetailsService {
+
     private final MemberRepository memberRepository;
 
     @Override
@@ -22,7 +23,7 @@ public class LoginService implements UserDetailsService {
         return User.builder()
                 .username(member.getMemberId())
                 .password(member.getMemberPassword())
-                .roles(member.getMemberRole())
+                .roles(String.valueOf(member.getMemberRole()))
                 .build();
     }
 }
