@@ -1,0 +1,40 @@
+package com.example.milky_way_back.article.service;
+
+import com.example.milky_way_back.article.DTO.AddArticle;
+import com.example.milky_way_back.article.entity.Article;
+import com.example.milky_way_back.article.repository.ArticleRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+
+import javax.transaction.Transactional;
+import java.util.List;
+
+@RequiredArgsConstructor
+@Service
+public class ArticleService {
+    private final ArticleRepository articleRepository;
+    public Article save(AddArticle request){
+        return articleRepository.save(request.toEntity());
+    }
+    public List<Article> findAll(Pageable pageable){
+        return articleRepository.findAll(pageable).getContent();
+    }
+    public Article findById (long id) {
+        return articleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+    }
+    public void delete(long id){
+        articleRepository.deleteById(id);
+    }
+//    @Transactional
+//    public Article update(long id, UpdateRequest request) {
+//        Article article = articleRepository.findById(id)
+//                .orElseThrow(() -> new IllegalArgumentException("not found: "+id));
+//
+//        article.update(request.getTitle(), request.getContent());
+//        return article;
+//    } 수정 넣을건가요?
+
+}
