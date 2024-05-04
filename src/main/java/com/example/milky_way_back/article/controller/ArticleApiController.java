@@ -15,21 +15,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-
-@CrossOrigin
-
 @RestController //http 응답으로 객체 데이터를 json 형태로 변환
 public class ArticleApiController {
     private final ArticleService articleService;
 
-
     @PostMapping("/posts/edit") // method가 post형식의 /api/boards/ 요청이 들어오면 실행
     public ResponseEntity<Article> addBoard(@RequestBody AddArticle request){
+        System.out.println(request.getArticleType());
+        System.out.println(request.getTitle());
+        System.out.println(request.getMentorTag());
+        System.out.println(request.getUserNo());
+        System.out.println(request.getApply());
+        System.out.println(request.getEndDay());
+        System.out.println(request.getUserNo());
+        System.out.println(request.getContent());
         Article savedBoard = articleService.save(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedBoard);
     }
 
-    @GetMapping("/api/boards")
+    @GetMapping("/posts?page={number}&size={data count}&sort={column}")
     public ResponseEntity<List<ArticleListView>> findAllBoards(){
         List<ArticleListView> articles = articleService.findAll(Pageable.unpaged()).stream().map(ArticleListView::new).collect(Collectors.toList());
         //List<ArticleListView> articles = articleService.findAll(Pageable.unpaged()).stream().map(ArticleListView::new).toList();
@@ -37,14 +41,15 @@ public class ArticleApiController {
         return ResponseEntity.ok().body(articles);
     }
 
-    @GetMapping("/posts/{article-id}")
+    @GetMapping("/posts/{id}")
     public ResponseEntity<ArticleViewResponse> findBoard(@PathVariable long id){
         Article article = articleService.findById(id);
         return ResponseEntity.ok().body(new ArticleViewResponse(article));
     }
     //DELETE
-    @DeleteMapping("/posts/{article-id}")
+    @DeleteMapping("/posts/{id}")
     public ResponseEntity<Void> deleteArticle(@PathVariable long id) {
+        System.out.println(id);
         articleService.delete(id);
         return ResponseEntity.ok().build();
     }
