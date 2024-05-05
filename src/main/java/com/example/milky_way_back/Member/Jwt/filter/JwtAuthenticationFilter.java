@@ -1,9 +1,6 @@
 package com.example.milky_way_back.Member.Jwt.filter;
 
-import com.example.milky_way_back.Member.Dto.LoginRequest;
-import com.example.milky_way_back.Member.Dto.LoginResponse;
-import com.example.milky_way_back.Member.Dto.StatusResponse;
-import com.example.milky_way_back.Member.Dto.TokenRequest;
+import com.example.milky_way_back.Member.Dto.*;
 import com.example.milky_way_back.Member.Entity.Auth;
 import com.example.milky_way_back.Member.Entity.Role;
 import com.example.milky_way_back.Member.Jwt.JwtUtils;
@@ -38,7 +35,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public JwtAuthenticationFilter(JwtUtils jwtUtils, AuthenticationManager authenticationManager,
                                    AuthRepository authRepository, SecretKey secretKey) {
 
-        this.authRepository =authRepository;
+        this.authRepository = authRepository;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.secretKey = secretKey;
@@ -99,18 +96,44 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             throws AuthenticationException {
 
         try {
-            LoginRequest requestDto = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
 
-            return getAuthenticationManager().authenticate(
-                    new UsernamePasswordAuthenticationToken( // userId랑 password로 인증 객체 저장
-                            requestDto.getMemberId(),
-                            requestDto.getMemberPassword(),
-                            null)); /* todo 수정 */
+            // 로그인 요청일 경우
+            if (isLoginRequest(request)) {
+                LoginRequest requestDto = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
+
+                return getAuthenticationManager().authenticate(
+                        new UsernamePasswordAuthenticationToken( // userId랑 password로 인증 객체 저장
+                                requestDto.getMemberId(),
+                                requestDto.getMemberPassword(),
+                                null)); /* todo 수정 */
+
+            }
+
+            // 로그아웃 요청일 경우
+            if (isLogoutRequest(request)) { // 로그아웃 요청일 경우
+
+                LogoutRequest requestDto = new ObjectMapper().readValue(request.getInputStream(), LogoutRequest.class);
+
+                return getAuthenticationManager().authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                               requestDto.getMemberId(), null, null));
+            } else {
+                throw new IllegalArgumentException("올바른 요청이 아님");
+            }
 
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
+    }
 
 
+    // 로그인인지 확인하는 메서드
+    private boolean isLoginRequest(HttpServletRequest request) {
+       return request.getRequestURI().contains("/login");
+    }
+
+    // 로그아웃인지 확인하는 메서드
+    private boolean isLogoutRequest(HttpServletRequest request) {
+        return request.getRequestURI().contains("/logout");
     }
 }

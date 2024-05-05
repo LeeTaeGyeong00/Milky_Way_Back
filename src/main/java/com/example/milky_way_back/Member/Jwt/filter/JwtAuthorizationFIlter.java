@@ -52,6 +52,9 @@ public class JwtAuthorizationFIlter extends OncePerRequestFilter {
         // 토큰 유효검사
         if(StringUtils.hasText(tokenValue)) {
             if(!jwtUtil.validateToken(tokenValue)) {
+
+                // 유효하지 않은 토큰이면 필터체인 진행
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
                 log.error("token error");
                 return;
             }
@@ -59,17 +62,18 @@ public class JwtAuthorizationFIlter extends OncePerRequestFilter {
             // 토큰 정보 claim 가져오기
             Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
 
-            // authentication subject 저장
             try {
-
+                // authentication subject 저장
                 setAuthentication(info.getSubject());
 
             } catch (Exception e) {
                 log.error(e.getMessage());
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
                 return;
             }
         }
 
+        // 토큰이 없거나 유효한 경우에도 필터 체인 진행
         filterChain.doFilter(httpServletRequest, httpServletResponse);
 
     }
