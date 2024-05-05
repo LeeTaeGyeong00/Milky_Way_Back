@@ -86,7 +86,6 @@ public class MemberService {
                 if(refreshToken == null) {
                     return ResponseEntity.status(HttpStatus.OK).body(jwtUtils.createToken(authentication, secretKey));
                 } else {
-
                     // 어세스 토큰 만료 확인
                     boolean accessTokenValid = jwtUtils.validateToken(accessToken);
 
@@ -120,7 +119,6 @@ public class MemberService {
 
         // 리프레시 토큰 삭제
         Auth logoutMember = authRepository.deleteByAuthRefreshToken(refershToken).orElseThrow();
-        authRepository.save(logoutMember);
 
         return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "로그아웃 성공"));
 
