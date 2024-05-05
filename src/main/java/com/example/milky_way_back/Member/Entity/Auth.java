@@ -1,13 +1,18 @@
 package com.example.milky_way_back.Member.Entity;
 
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.Instant;
 
 @Table(name="Auth")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Entity
+@Data
 @AllArgsConstructor
 @Builder
 public class Auth {
@@ -15,24 +20,22 @@ public class Auth {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "auth_no")
-    private Long authNo;
+    private Long authNo; // 고유 번호
 
     // member join
-    @JoinColumn(name="auth_user_no",referencedColumnName="member_no")
+    @JoinColumn(name="auth_member_no", referencedColumnName = "member_no")
     @OneToOne
-    private Member member;
+    private Member member; // memberNo로 조인
 
-    @Column(nullable = false, name="auth_refreshtoken")
-    private String authRefreshToken;
+    @Column(name="auth_refreshtoken")
+    private String authRefreshToken; // 리프레시 토큰
 
-    @Column(nullable = false, name="auth_refreshtoken_expiration")
-    private long authRefreshTokenExpiration;
+    @Column(name="auth_expiration")
+    private Instant authExpiration; // 만료시간
 
-    public void updateRefreshToken(String authRefreshToken) {
-        this.authRefreshToken = authRefreshToken;
+
+    public void refreshUpdate(String refreshToken) {
+        this.authRefreshToken = refreshToken;
     }
 
-    public void destoryRefreshToken() {
-        this.authRefreshToken = null;
-    }
 }
