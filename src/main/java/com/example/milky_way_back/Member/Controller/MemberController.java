@@ -1,4 +1,4 @@
-package com.example.milky_way_back.Member;
+package com.example.milky_way_back.Member.Controller;
 
 import com.example.milky_way_back.Member.Dto.*;
 import com.example.milky_way_back.Member.Service.MemberService;
