@@ -1,12 +1,9 @@
 package com.example.milky_way_back.article.DTO;
 
 import com.example.milky_way_back.article.entity.Article;
-import com.example.milky_way_back.article.entity.Member;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
