@@ -118,7 +118,7 @@ public class MemberService {
         String refershToken = auth.getAuthRefreshToken();
 
         // 리프레시 토큰 삭제
-        Auth logoutMember = authRepository.deleteByAuthRefreshToken(refershToken).orElseThrow();
+        authRepository.deleteByAuthRefreshToken(refershToken).orElseThrow();
 
         return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "로그아웃 성공"));
 

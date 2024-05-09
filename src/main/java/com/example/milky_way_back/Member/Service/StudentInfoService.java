@@ -36,6 +36,7 @@ public class StudentInfoService {
 
         Member member = memberRepository.findByMemberId(memberId).orElseThrow();
 
+        // 이력 부분
         StudentInfo studentInfo = StudentInfo.builder()
                 .studentGrade(studentInformaitonRequest.getStudentGrade())
                 .studentMajor(studentInformaitonRequest.getStudentMajor())
@@ -44,6 +45,7 @@ public class StudentInfoService {
                 .member(member)
                 .build();
 
+        // 경력 부분
         Career career = Career.builder()
                 .careerName(studentInformaitonRequest.getCareerName())
                 .careerStartDay(studentInformaitonRequest.getCareerStartDay())

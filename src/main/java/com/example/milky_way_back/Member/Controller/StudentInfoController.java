@@ -37,7 +37,7 @@ public class StudentInfoController {
     public ResponseEntity<StudentInformaiton> studentAllView(HttpServletRequest request) {
 
         String accessToken = jwtUtils.getJwtFromHeader(request);
-        String memberId = jwtUtils.getUserIdFromAccessToken(accessToken);
+        String memberId = jwtUtils.getUserIdFromAccessToken(accessToken); // 토큰 기반 아이디 찾기
         StudentInformaiton studentInfo = studentInfoService.viewInfo(memberId);
 
         return ResponseEntity.ok(studentInfo);
