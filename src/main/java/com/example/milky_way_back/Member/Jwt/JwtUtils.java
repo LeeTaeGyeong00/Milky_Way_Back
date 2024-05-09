@@ -112,7 +112,7 @@ public class JwtUtils {
 
     // header에서 jwt 가져오기
     public String getJwtFromHeader(HttpServletRequest request) {
-        String bearerToken = request.getHeader(ACCESS_HEADER);
+        String bearerToken = request.getHeader(ACCESS_HEADER); // 클라이언트 쪽에서 설정한 이름값
 
         // bearer으로 시작할 경우 추출하여 정보 전달
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER)) {
@@ -177,6 +177,12 @@ public class JwtUtils {
         UserDetails principal = new User(claims.getSubject(), "", authorities); // 유저 메인 정보에 클레임 제목. 비밀번호, 인증 정보 저장
         return new UsernamePasswordAuthenticationToken(principal, "", authorities); // 유저 정보를 담은 객체와 정보를 리턴
 
+    }
+
+    // 사용자 아이디 알아내는 메서드
+    public String getUserIdFromAccessToken(String accessToken) {
+        Claims claims = getUserInfoFromToken(accessToken);
+        return claims.getSubject();
     }
 
 }
