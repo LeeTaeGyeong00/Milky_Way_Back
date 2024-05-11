@@ -1,15 +1,13 @@
 package com.example.milky_way_back.Member.Jwt;
 
-import com.example.milky_way_back.Member.Dto.AccessTokenRequest;
+import com.example.milky_way_back.Member.Dto.AccessTokenResponse;
 import com.example.milky_way_back.Member.Dto.TokenRequest;
 import com.example.milky_way_back.Member.Entity.Auth;
+import com.example.milky_way_back.Member.Jwt.filter.UserDetailsImpl;
+import com.example.milky_way_back.Member.Repository.AuthRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,15 +30,12 @@ import java.util.stream.Collectors;
 @Component /* todo 컴포넌트는 어떤 어노테이션인가? */
 @Slf4j
 public class JwtUtils {
+    private static AuthRepository authRepository;
     public static final String ACCESS_HEADER = "ACCESS_HEADER";
     public static final String BEARER = "Bearer ";
 
     private final SecretKey secretKey;
     private String accessToken;
-
-    private SecretKey getSecretKey() {
-        return secretKey;
-    }
 
     // 생성자를 통해 SecretKey 주입 받도록 수정
     public JwtUtils(SecretKey secretKey) {
@@ -71,6 +66,15 @@ public class JwtUtils {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
+        // 리프레시 토큰 저장
+        Auth auth = Auth.builder()
+                .member(((UserDetailsImpl) authentication.getPrincipal()).getMember()) // 객체의 정보를 UserDetailImpl화 시켜서 적용
+                .authRefreshToken(refreshToken)
+                .authExpiration(getExpirationDate(refreshToken, secretKey))
+                .build();
+
+        authRepository.save(auth);
+
         // 리프레시 토큰 dto build
         return TokenRequest.builder()
                 .grantType(BEARER)
@@ -80,7 +84,7 @@ public class JwtUtils {
     }
 
     // 어세스 토큰 만료 시 재생성
-    public AccessTokenRequest createAccessToken(Authentication authentication, SecretKey secretKey) {
+    public AccessTokenResponse createAccessToken(Authentication authentication, SecretKey secretKey) {
 
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority) /* todo GrantedAuthority가 무엇인가? */
@@ -94,7 +98,7 @@ public class JwtUtils {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
-        return AccessTokenRequest.builder()
+        return AccessTokenResponse.builder()
                 .accessToken(accessToken)
                 .build();
     }
@@ -116,7 +120,7 @@ public class JwtUtils {
 
         // bearer으로 시작할 경우 추출하여 정보 전달
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER)) {
-            return bearerToken.substring(7);
+            return bearerToken.replace(BEARER, "");
         }
 
         return null; /* todo exception */
@@ -131,16 +135,32 @@ public class JwtUtils {
                 .getBody();
     }
 
+    public String extractUsername(String token, SecretKey secretKey) {
+        return Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
 
     // 토큰 정보 검증 메서드
     public boolean validateToken(String token) {
 
         try {
-            Jwts.parserBuilder()
+            Jws<Claims> claims = Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
-                    .parseClaimsJws(token); // tokeㅜ 존재
-            return true;
+                    .parseClaimsJws(token); // 토큰 존재
+
+            Date expiration = claims.getBody().getExpiration();
+
+            Date now = new Date();
+
+            // 만료되지 았음
+            if (expiration != null && now.before(expiration)) {
+                return true;
+            }
 
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
@@ -151,13 +171,14 @@ public class JwtUtils {
         } catch (IllegalArgumentException e) {
             log.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
         }
-        return false;
+
+        return false; // 만료됨
     }
 
     // 어세스 토큰의 인증 정보 가져오기
     public Authentication getAuthentication(String accessToken) {
 
-        Claims claims = getUserInfoFromToken(accessToken); // accessToken의 Claimm 가져오기
+        Claims claims = getUserInfoFromToken(accessToken); // accessToken의 Claim 가져오기
 
         // 권한이 없을 경우
         if (claims.get("auth")== null) {

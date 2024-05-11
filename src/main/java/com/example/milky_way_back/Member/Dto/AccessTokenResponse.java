@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class AccessTokenRequest {
+public class AccessTokenResponse {
     private String accessToken;
 }
