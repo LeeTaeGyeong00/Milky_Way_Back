@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class AccessTokenRequest {
-    private String accessToken;
+public class AccessTokenResponse {
+    private String accessToken; // 토큰만 반환
 }

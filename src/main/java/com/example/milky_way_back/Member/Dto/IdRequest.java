@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LogoutRequest {
-    private String memberId;
+public class IdRequest {
+    private String memberId; // 중복확인
 }

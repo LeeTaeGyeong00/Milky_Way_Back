@@ -1,15 +1,18 @@
 package com.example.milky_way_back.Member.Jwt;
 
-import com.example.milky_way_back.Member.Dto.AccessTokenRequest;
+import com.example.milky_way_back.Member.Dto.AccessTokenResponse;
 import com.example.milky_way_back.Member.Dto.TokenRequest;
 import com.example.milky_way_back.Member.Entity.Auth;
+import com.example.milky_way_back.Member.Entity.Member;
+import com.example.milky_way_back.Member.Jwt.filter.UserDetailsImpl;
+import com.example.milky_way_back.Member.Repository.AuthRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -38,10 +41,6 @@ public class JwtUtils {
     private final SecretKey secretKey;
     private String accessToken;
 
-    private SecretKey getSecretKey() {
-        return secretKey;
-    }
-
     // 생성자를 통해 SecretKey 주입 받도록 수정
     public JwtUtils(SecretKey secretKey) {
         this.secretKey = secretKey;
@@ -57,10 +56,19 @@ public class JwtUtils {
                 .map(GrantedAuthority::getAuthority) /* todo GrantedAuthority가 무엇인가? */
                 .collect(Collectors.joining(","));
 
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Member member = userDetails.getMember();
+        Long memberNo = member.getMemberNo();
+        String memberName = member.getMemberName();
+        String memberId = member.getMemberId();
+
                 // 어세스 토큰 생성
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
+                .claim("memberNo", memberNo)
+                .claim("memberId", memberId)
+                .claim("memberName", memberName)
                 .setExpiration(TOKENTIME)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
@@ -69,6 +77,10 @@ public class JwtUtils {
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + 86400000))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
+                .claim("auth", authorities)
+                .claim("memberNo", memberNo)
+                .claim("memberId", memberId)
+                .claim("memberName", memberName)
                 .compact();
 
         // 리프레시 토큰 dto build
@@ -80,7 +92,7 @@ public class JwtUtils {
     }
 
     // 어세스 토큰 만료 시 재생성
-    public AccessTokenRequest createAccessToken(Authentication authentication, SecretKey secretKey) {
+    public AccessTokenResponse createAccessToken(Authentication authentication, SecretKey secretKey) {
 
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority) /* todo GrantedAuthority가 무엇인가? */
@@ -94,7 +106,7 @@ public class JwtUtils {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
-        return AccessTokenRequest.builder()
+        return AccessTokenResponse.builder()
                 .accessToken(accessToken)
                 .build();
     }
@@ -112,11 +124,11 @@ public class JwtUtils {
 
     // header에서 jwt 가져오기
     public String getJwtFromHeader(HttpServletRequest request) {
-        String bearerToken = request.getHeader(ACCESS_HEADER);
+        String bearerToken = request.getHeader(ACCESS_HEADER); // 클라이언트 쪽에서 설정한 이름값
 
         // bearer으로 시작할 경우 추출하여 정보 전달
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER)) {
-            return bearerToken.substring(7);
+            return bearerToken.replace(BEARER, "");
         }
 
         return null; /* todo exception */
@@ -131,16 +143,32 @@ public class JwtUtils {
                 .getBody();
     }
 
+    public String extractUsername(String token, SecretKey secretKey) {
+        return Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
 
     // 토큰 정보 검증 메서드
     public boolean validateToken(String token) {
 
         try {
-            Jwts.parserBuilder()
+            Jws<Claims> claims = Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
-                    .parseClaimsJws(token); // tokeㅜ 존재
-            return true;
+                    .parseClaimsJws(token); // 토큰 존재
+
+            Date expiration = claims.getBody().getExpiration();
+
+            Date now = new Date();
+
+            // 만료되지 았음
+            if (expiration != null && now.before(expiration)) {
+                return true;
+            }
 
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
@@ -151,13 +179,14 @@ public class JwtUtils {
         } catch (IllegalArgumentException e) {
             log.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
         }
-        return false;
+
+        return false; // 만료됨
     }
 
     // 어세스 토큰의 인증 정보 가져오기
     public Authentication getAuthentication(String accessToken) {
 
-        Claims claims = getUserInfoFromToken(accessToken); // accessToken의 Claimm 가져오기
+        Claims claims = getUserInfoFromToken(accessToken); // accessToken의 Claim 가져오기
 
         // 권한이 없을 경우
         if (claims.get("auth")== null) {
@@ -177,6 +206,12 @@ public class JwtUtils {
         UserDetails principal = new User(claims.getSubject(), "", authorities); // 유저 메인 정보에 클레임 제목. 비밀번호, 인증 정보 저장
         return new UsernamePasswordAuthenticationToken(principal, "", authorities); // 유저 정보를 담은 객체와 정보를 리턴
 
+    }
+
+    // 사용자 아이디 알아내는 메서드
+    public String getUserIdFromAccessToken(String accessToken) {
+        Claims claims = getUserInfoFromToken(accessToken);
+        return claims.getSubject();
     }
 
 }

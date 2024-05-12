@@ -54,6 +54,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 // Authorization filter 적용
                 .addFilterBefore(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(), jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class)
                 .cors(); // cors config 적용
+                .addFilterAfter(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(),jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class);
     }
     // 패스워드 암호화
     @Bean

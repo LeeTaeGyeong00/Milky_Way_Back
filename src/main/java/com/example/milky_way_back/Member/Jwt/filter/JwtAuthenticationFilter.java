@@ -48,33 +48,33 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // 로그인 성공시
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                            FilterChain chain, Authentication authResult) throws IOException, ServletException {
+                                            FilterChain chain, Authentication authentication) throws IOException, ServletException {
+
 
         // JWT 토큰 생성
-        TokenRequest tokenRequest = jwtUtils.createToken(authResult, secretKey);
-
-        // 리프레시 토큰 저장
-        Auth auth = Auth.builder()
-                .member(((UserDetailsImpl) authResult.getPrincipal()).getMember()) // 객체의 정보를 UserDetailImpl화 시켜서 적용
-                .authRefreshToken(tokenRequest.getRefreshToken())
-                .authExpiration(jwtUtils.getExpirationDate(tokenRequest.getRefreshToken(), secretKey))
-                .build();
-
-        authRepository.save(auth);
+        TokenRequest tokenRequest = jwtUtils.createToken(authentication, secretKey);
 
         // 로그인 성공 응답
         LoginResponse loginResponse = new LoginResponse();
 
         loginResponse.setAccessToken(tokenRequest.getAccessToken());
-        loginResponse.setRefreshToken(tokenRequest.getRefreshToken());
-        loginResponse.setMemberName(((UserDetailsImpl) authResult.getPrincipal()).getMember().getMemberName());
-        loginResponse.setMemberId(((UserDetailsImpl) authResult.getPrincipal()).getUsername());
-        loginResponse.setMemberNo(((UserDetailsImpl) authResult.getPrincipal()).getMember().getMemberNo());
+        loginResponse.setMemberName(((UserDetailsImpl) authentication.getPrincipal()).getMember().getMemberName());
+        loginResponse.setMemberId(((UserDetailsImpl) authentication.getPrincipal()).getMember().getMemberId());
+        loginResponse.setMemberNo(((UserDetailsImpl) authentication.getPrincipal()).getMember().getMemberNo());
 
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpStatus.OK.value());
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(loginResponse));
+
+        // 리프레시 토큰 저장
+        Auth auth = Auth.builder()
+                .member(((UserDetailsImpl) authentication.getPrincipal()).getMember()) // 객체의 정보를 UserDetailImpl화 시켜서 적용
+                .authRefreshToken(tokenRequest.getRefreshToken())
+                .authExpiration(jwtUtils.getExpirationDate(tokenRequest.getRefreshToken(), secretKey))
+                .build();
+
+        authRepository.save(auth);
 
         StatusResponse responseDto = new StatusResponse(HttpStatus.OK.value(), "로그인 성공했습니다.");
     }
@@ -111,21 +111,26 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             // 로그아웃 요청일 경우
             if (isLogoutRequest(request)) { // 로그아웃 요청일 경우
-
-                LogoutRequest requestDto = new ObjectMapper().readValue(request.getInputStream(), LogoutRequest.class);
+                String memberId = extractMemberIdFromRequest(request);
 
                 return getAuthenticationManager().authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                               requestDto.getMemberId(), null, null));
-            } else {
-                throw new IllegalArgumentException("올바른 요청이 아님");
+                        new UsernamePasswordAuthenticationToken(memberId, null, null)
+                );
             }
 
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }
+
+        return null;
     }
 
+    // 헤더에서 아이디 갖고 오는 메서드
+    private String extractMemberIdFromRequest(HttpServletRequest request) {
+        String accessToken = jwtUtils.getJwtFromHeader(request);
+        String memberId = jwtUtils.getUserIdFromAccessToken(accessToken);
+        return memberId;
+    }
 
     // 로그인인지 확인하는 메서드
     private boolean isLoginRequest(HttpServletRequest request) {
