@@ -9,4 +9,5 @@ public interface AuthRepository extends JpaRepository<Auth, Long> {
     Optional<Auth> findById(Long authId);
     Optional<Auth> findByMember(Long memberNo);
     Optional<Auth> deleteByAuthRefreshToken(String refreshToken);
+    void deleteByMember(Long memberNo);
 }

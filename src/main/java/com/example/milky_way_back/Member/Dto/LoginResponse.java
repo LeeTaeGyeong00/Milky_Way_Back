@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter // 로그인을 응답하는 클래스
+@Setter // 로그인을 응답
 public class LoginResponse {
     private String accessToken;
     private String memberName;

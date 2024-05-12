@@ -49,23 +49,33 @@ public class JwtAuthorizationFIlter extends OncePerRequestFilter {
 
         String tokenValue = jwtUtil.getJwtFromHeader(httpServletRequest);
 
-        if (StringUtils.hasText(tokenValue) && jwtUtil.validateToken(tokenValue)) {
+        // 토큰 유효검사
+        if(StringUtils.hasText(tokenValue)) {
+            if(!jwtUtil.validateToken(tokenValue)) {
+
+                // 유효하지 않은 토큰이면 필터체인 진행
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
+                log.error("token error");
+                return;
+            }
+
+            // 토큰 정보 claim 가져오기
+            Claims info = jwtUtil.getUserInfoFromToken(tokenValue);
 
             try {
-
-                String username = jwtUtil.extractUsername(tokenValue, secretKey);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                // authentication subject 저장
+                setAuthentication(info.getSubject());
 
             } catch (Exception e) {
-                log.error("인증에 실패함", e);
-                httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                log.error(e.getMessage());
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
+                return;
             }
-        } else {
-            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
+
+        // 토큰이 없거나 유효한 경우에도 필터 체인 진행
+        filterChain.doFilter(httpServletRequest, httpServletResponse);
+
     }
 
     // authentication 설정

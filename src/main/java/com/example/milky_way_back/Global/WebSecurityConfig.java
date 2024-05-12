@@ -51,7 +51,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, authenticationManagerBean(), authRepository, jwtConfig.jwtSecretKey()), UsernamePasswordAuthenticationFilter.class)
 
                 // Authorization filter 적용
-                .addFilterBefore(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(),jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class);
+                .addFilterAfter(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(),jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class);
     }
 
     // 패스워드 암호화

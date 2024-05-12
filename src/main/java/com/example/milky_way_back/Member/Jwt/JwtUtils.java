@@ -3,11 +3,16 @@ package com.example.milky_way_back.Member.Jwt;
 import com.example.milky_way_back.Member.Dto.AccessTokenResponse;
 import com.example.milky_way_back.Member.Dto.TokenRequest;
 import com.example.milky_way_back.Member.Entity.Auth;
+import com.example.milky_way_back.Member.Entity.Member;
 import com.example.milky_way_back.Member.Jwt.filter.UserDetailsImpl;
 import com.example.milky_way_back.Member.Repository.AuthRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,7 +35,6 @@ import java.util.stream.Collectors;
 @Component /* todo 컴포넌트는 어떤 어노테이션인가? */
 @Slf4j
 public class JwtUtils {
-    private static AuthRepository authRepository;
     public static final String ACCESS_HEADER = "ACCESS_HEADER";
     public static final String BEARER = "Bearer ";
 
@@ -52,10 +56,19 @@ public class JwtUtils {
                 .map(GrantedAuthority::getAuthority) /* todo GrantedAuthority가 무엇인가? */
                 .collect(Collectors.joining(","));
 
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Member member = userDetails.getMember();
+        Long memberNo = member.getMemberNo();
+        String memberName = member.getMemberName();
+        String memberId = member.getMemberId();
+
                 // 어세스 토큰 생성
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
+                .claim("memberNo", memberNo)
+                .claim("memberId", memberId)
+                .claim("memberName", memberName)
                 .setExpiration(TOKENTIME)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
@@ -64,16 +77,11 @@ public class JwtUtils {
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + 86400000))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
+                .claim("auth", authorities)
+                .claim("memberNo", memberNo)
+                .claim("memberId", memberId)
+                .claim("memberName", memberName)
                 .compact();
-
-        // 리프레시 토큰 저장
-        Auth auth = Auth.builder()
-                .member(((UserDetailsImpl) authentication.getPrincipal()).getMember()) // 객체의 정보를 UserDetailImpl화 시켜서 적용
-                .authRefreshToken(refreshToken)
-                .authExpiration(getExpirationDate(refreshToken, secretKey))
-                .build();
-
-        authRepository.save(auth);
 
         // 리프레시 토큰 dto build
         return TokenRequest.builder()

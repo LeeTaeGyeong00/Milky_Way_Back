@@ -48,23 +48,33 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // 로그인 성공시
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                            FilterChain chain, Authentication authResult) throws IOException, ServletException {
+                                            FilterChain chain, Authentication authentication) throws IOException, ServletException {
+
 
         // JWT 토큰 생성
-        TokenRequest tokenRequest = jwtUtils.createToken(authResult, secretKey);
+        TokenRequest tokenRequest = jwtUtils.createToken(authentication, secretKey);
 
         // 로그인 성공 응답
         LoginResponse loginResponse = new LoginResponse();
 
         loginResponse.setAccessToken(tokenRequest.getAccessToken());
-        loginResponse.setMemberName(((UserDetailsImpl) authResult.getPrincipal()).getMember().getMemberName());
-        loginResponse.setMemberId(((UserDetailsImpl) authResult.getPrincipal()).getUsername());
-        loginResponse.setMemberNo(((UserDetailsImpl) authResult.getPrincipal()).getMember().getMemberNo());
+        loginResponse.setMemberName(((UserDetailsImpl) authentication.getPrincipal()).getMember().getMemberName());
+        loginResponse.setMemberId(((UserDetailsImpl) authentication.getPrincipal()).getMember().getMemberId());
+        loginResponse.setMemberNo(((UserDetailsImpl) authentication.getPrincipal()).getMember().getMemberNo());
 
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpStatus.OK.value());
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(loginResponse));
+
+        // 리프레시 토큰 저장
+        Auth auth = Auth.builder()
+                .member(((UserDetailsImpl) authentication.getPrincipal()).getMember()) // 객체의 정보를 UserDetailImpl화 시켜서 적용
+                .authRefreshToken(tokenRequest.getRefreshToken())
+                .authExpiration(jwtUtils.getExpirationDate(tokenRequest.getRefreshToken(), secretKey))
+                .build();
+
+        authRepository.save(auth);
 
         StatusResponse responseDto = new StatusResponse(HttpStatus.OK.value(), "로그인 성공했습니다.");
     }

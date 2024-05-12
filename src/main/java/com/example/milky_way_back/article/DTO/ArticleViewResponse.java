@@ -1,7 +1,6 @@
 package com.example.milky_way_back.article.DTO;
 
 import com.example.milky_way_back.article.entity.Article;
-import com.example.milky_way_back.article.entity.Member;
 import lombok.Getter;
 import java.time.LocalDateTime;
 
