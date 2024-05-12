@@ -40,6 +40,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable() // csrf 해제
+                .httpBasic().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 방식 쓰지 않음
                 .and()
                 .authorizeRequests((request) -> request.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
@@ -51,9 +52,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, authenticationManagerBean(), authRepository, jwtConfig.jwtSecretKey()), UsernamePasswordAuthenticationFilter.class)
 
                 // Authorization filter 적용
+                .addFilterBefore(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(), jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class)
+                .cors(); // cors config 적용
                 .addFilterAfter(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(),jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class);
     }
-
     // 패스워드 암호화
     @Bean
     public PasswordEncoder passwordEncoder() {
