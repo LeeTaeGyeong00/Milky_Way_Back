@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class StudentInformaiton {
+public class StudentInformaitonRequest {
 
     // 기본 정보
     private int studentGrade;

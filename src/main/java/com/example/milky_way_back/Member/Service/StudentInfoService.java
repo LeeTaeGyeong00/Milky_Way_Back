@@ -1,7 +1,7 @@
 package com.example.milky_way_back.Member.Service;
 
 import com.example.milky_way_back.Member.Dto.StatusResponse;
-import com.example.milky_way_back.Member.Dto.StudentInformaiton;
+import com.example.milky_way_back.Member.Dto.StudentInformaitonRequest;
 import com.example.milky_way_back.Member.Entity.Career;
 import com.example.milky_way_back.Member.Entity.Member;
 import com.example.milky_way_back.Member.Entity.StudentInfo;
@@ -17,6 +17,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -28,7 +30,7 @@ public class StudentInfoService {
     private final MemberRepository memberRepository;
 
     // 등록
-    public ResponseEntity<StatusResponse> inputStudentInfo(StudentInformaiton studentInformaitonRequest, String accessToken) {
+    public ResponseEntity<StatusResponse> inputStudentInfo(StudentInformaitonRequest studentInformaitonRequest, String accessToken) {
 
         Authentication authentication = jwtUtils.getAuthentication(accessToken);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -62,7 +64,7 @@ public class StudentInfoService {
 
 
     // 조회
-    public StudentInformaiton viewInfo(String memberId) {
+    public StudentInformaitonRequest viewInfo(String memberId) {
         Member member = memberRepository.findByMemberId(memberId).orElseThrow();
         StudentInfo studentInfo = studentInfoRepository.findByMember(member);
         Career career = careerRepository.findByMember(member);
@@ -70,9 +72,9 @@ public class StudentInfoService {
         return convertToResponse(studentInfo, career);
     }
 
-    private StudentInformaiton convertToResponse(StudentInfo studentInfo, Career career) {
+    private StudentInformaitonRequest convertToResponse(StudentInfo studentInfo, Career career) {
 
-        StudentInformaiton response = new StudentInformaiton();
+        StudentInformaitonRequest response = new StudentInformaitonRequest();
         Career careerInfo = new Career();
 
         // 이력 부분
