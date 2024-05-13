@@ -48,12 +48,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         .antMatchers(HttpMethod.POST).permitAll() // post로 접근하는 건 모두 허용
                         .anyRequest().permitAll()) // 다른 경로도 모두 인증 없이 접근 가능
 
-                // authentication filter 적용
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtils, authenticationManagerBean(), authRepository, jwtConfig.jwtSecretKey()), UsernamePasswordAuthenticationFilter.class)
-
-                // Authorization filter 적용
+                .cors()
+                .and()// cors config 적용
                 .addFilterBefore(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(), jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class)
-                .cors(); // cors config 적용
                 .addFilterAfter(new JwtAuthorizationFIlter(jwtUtils, userDetailsService(),jwtConfig.jwtSecretKey()), JwtAuthenticationFilter.class);
     }
     // 패스워드 암호화

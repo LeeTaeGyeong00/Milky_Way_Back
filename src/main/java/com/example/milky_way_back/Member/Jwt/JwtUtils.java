@@ -39,7 +39,6 @@ public class JwtUtils {
     public static final String BEARER = "Bearer ";
 
     private final SecretKey secretKey;
-    private String accessToken;
 
     // 생성자를 통해 SecretKey 주입 받도록 수정
     public JwtUtils(SecretKey secretKey) {
@@ -62,7 +61,7 @@ public class JwtUtils {
         String memberName = member.getMemberName();
         String memberId = member.getMemberId();
 
-                // 어세스 토큰 생성
+        // 어세스 토큰 생성
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
@@ -98,10 +97,19 @@ public class JwtUtils {
                 .map(GrantedAuthority::getAuthority) /* todo GrantedAuthority가 무엇인가? */
                 .collect(Collectors.joining(","));
 
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Member member = userDetails.getMember();
+        Long memberNo = member.getMemberNo();
+        String memberName = member.getMemberName();
+        String memberId = member.getMemberId();
+
         // 어세스 토큰 생성
-        accessToken = Jwts.builder()
+        String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)
+                .claim("memberNo", memberNo)
+                .claim("memberId", memberId)
+                .claim("memberName", memberName)
                 .setExpiration(TOKENTIME)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
@@ -141,14 +149,6 @@ public class JwtUtils {
                 .build()
                 .parseClaimsJws(token) // claim 확인
                 .getBody();
-    }
-
-    public String extractUsername(String token, SecretKey secretKey) {
-        return Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
     }
 
 
@@ -193,7 +193,6 @@ public class JwtUtils {
             throw new RuntimeException("권한 없는 토큰");
         }
 
-        // 관리자 권한
         Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims
                         .get("auth")
                         .toString()

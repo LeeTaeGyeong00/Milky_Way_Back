@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @Service
@@ -32,11 +33,15 @@ public class StudentInfoService {
     // 등록
     public ResponseEntity<StatusResponse> inputStudentInfo(StudentInformaitonRequest studentInformaitonRequest, String accessToken) {
 
+        if (accessToken == null || accessToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new StatusResponse(HttpStatus.BAD_REQUEST.value(), "토큰이 없습니다"));
+        }
+
         Authentication authentication = jwtUtils.getAuthentication(accessToken);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String memberId = userDetails.getUsername();
 
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow();
+        Optional<Member> member = memberRepository.findByMemberId(memberId);
 
         // 이력 부분
         StudentInfo studentInfo = StudentInfo.builder()
@@ -44,7 +49,7 @@ public class StudentInfoService {
                 .studentMajor(studentInformaitonRequest.getStudentMajor())
                 .studentOneLineShow(studentInformaitonRequest.getStudentOneLineShow())
                 .studentLocate(studentInformaitonRequest.getStudentLocate())
-                .member(member)
+                .member(member.get())
                 .build();
 
         // 경력 부분
@@ -52,7 +57,7 @@ public class StudentInfoService {
                 .careerName(studentInformaitonRequest.getCareerName())
                 .careerStartDay(studentInformaitonRequest.getCareerStartDay())
                 .careerEndDay(studentInformaitonRequest.getCareerEndDay())
-                .member(member)
+                .member(member.get())
                 .build();
 
         careerRepository.save(career);
