@@ -1,6 +1,6 @@
-package com.example.milky_way_back.Member.Dto;
+package com.example.milky_way_back.member.Dto;
 
-import com.example.milky_way_back.Member.Entity.Role;
+import com.example.milky_way_back.member.Entity.Role;
 import lombok.Getter;
 import lombok.Setter;
 

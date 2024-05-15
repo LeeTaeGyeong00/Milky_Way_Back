@@ -1,4 +1,4 @@
-package com.example.milky_way_back.Global;
+package com.example.milky_way_back.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

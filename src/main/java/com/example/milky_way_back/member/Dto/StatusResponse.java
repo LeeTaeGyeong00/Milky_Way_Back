@@ -1,4 +1,4 @@
-package com.example.milky_way_back.Member.Dto;
+package com.example.milky_way_back.member.Dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.example.milky_way_back.Member.Entity;
+package com.example.milky_way_back.member.Entity;
 
 
 import lombok.AllArgsConstructor;
@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.Instant;
 
 @Table(name="Auth")
 @NoArgsConstructor
@@ -15,7 +14,7 @@ import java.time.Instant;
 @Data
 @AllArgsConstructor
 @Builder
-public class Auth {
+public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,12 +29,9 @@ public class Auth {
     @Column(name="auth_refreshtoken")
     private String authRefreshToken; // 리프레시 토큰
 
-    @Column(name="auth_expiration")
-    private Instant authExpiration; // 만료시간
-
-
-    public void refreshUpdate(String refreshToken) {
-        this.authRefreshToken = refreshToken;
+    public RefreshToken updateToken(String token) {
+        this.authRefreshToken = token;
+        return this;
     }
 
 }
