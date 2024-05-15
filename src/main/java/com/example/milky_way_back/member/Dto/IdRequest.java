@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Data
+@Getter
 public class IdRequest {
     private String memberId; // 중복확인
 }
