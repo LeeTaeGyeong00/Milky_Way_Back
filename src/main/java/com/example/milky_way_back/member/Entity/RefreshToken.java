@@ -9,7 +9,7 @@ import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 
-@Table(name="Auth")
+@Table(name="auth")
 @NoArgsConstructor
 @Entity
 @Data
