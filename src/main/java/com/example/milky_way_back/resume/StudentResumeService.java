@@ -12,13 +12,11 @@ import com.example.milky_way_back.resume.entity.Certification;
 import com.example.milky_way_back.resume.repository.BasicInfoRepository;
 import com.example.milky_way_back.resume.repository.CareerRepository;
 import com.example.milky_way_back.resume.repository.CertificationRepository;
-import jdk.jshell.Snippet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
