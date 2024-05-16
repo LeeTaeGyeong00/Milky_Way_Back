@@ -5,6 +5,7 @@ import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.resume.dto.BasicInfoDto;
 import com.example.milky_way_back.resume.dto.CareerAndCertificationDto;
+import com.example.milky_way_back.resume.dto.MemberInfoResponse;
 import com.example.milky_way_back.resume.entity.BasicInfo;
 import com.example.milky_way_back.resume.entity.Career;
 import com.example.milky_way_back.resume.entity.Certification;
@@ -18,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +70,19 @@ public class StudentResumeService {
         certificationRepository.save(certification);
 
         return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "경력/자격증 저장 완료"));
+
+    }
+
+    public ResponseEntity<MemberInfoResponse> findAll(UserDetails userDetails) {
+
+        String memberId = userDetails.getUsername();
+
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow();
+        List<BasicInfo> basicInfos = basicInfoRepository.findByMember(member);
+        List<Career> careers = careerRepository.findByMember(member);
+        List<Certification> certifications = certificationRepository.findByMember(member);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new MemberInfoResponse(basicInfos, careers, certifications));
 
     }
 

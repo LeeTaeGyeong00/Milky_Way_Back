@@ -3,8 +3,10 @@ package com.example.milky_way_back.resume;
 import com.example.milky_way_back.member.Dto.StatusResponse;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
+import com.example.milky_way_back.member.Service.MemberService;
 import com.example.milky_way_back.resume.dto.BasicInfoDto;
 import com.example.milky_way_back.resume.dto.CareerAndCertificationDto;
+import com.example.milky_way_back.resume.dto.MemberInfoResponse;
 import com.example.milky_way_back.resume.entity.BasicInfo;
 import com.example.milky_way_back.resume.entity.Career;
 import com.example.milky_way_back.resume.repository.BasicInfoRepository;
@@ -15,10 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,6 +37,12 @@ public class StudentResumeController {
     @PostMapping("/member/updateCareerAndCertification")
     public ResponseEntity<StatusResponse> updateCareerAndCertification(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CareerAndCertificationDto careerAndCertificationDto) {
         return studentResumeService.updateCarCert(careerAndCertificationDto, userDetails);
+    }
+
+    // 기본 정보, 경력, 자격증 조회
+    @GetMapping("/myResume")
+    public ResponseEntity<MemberInfoResponse> memberInfoResponse(@AuthenticationPrincipal UserDetails userDetails) {
+        return studentResumeService.findAll(userDetails);
     }
 
 
