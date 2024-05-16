@@ -47,7 +47,6 @@ public class TokenProvider {
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities) /* todo claim 추가 */
-                .claim("memberId", authentication.getPrincipal())
                 .setExpiration(accessTokenExpire)
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
@@ -55,7 +54,6 @@ public class TokenProvider {
         // 리프레시 토큰 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(refreshTokenExpire)
-                .claim("memberId", authentication.getPrincipal())
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 

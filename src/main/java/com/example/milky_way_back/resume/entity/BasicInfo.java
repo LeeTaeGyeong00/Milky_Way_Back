@@ -5,7 +5,7 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Table(name="Member")
+@Table(name="studentresume")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -32,7 +32,7 @@ public class BasicInfo {
 
     // member join
     @JoinColumn(name="studentresume_member_no", referencedColumnName = "member_no", nullable = false)
-    @ManyToOne
+    @OneToOne
     private Member member; // memberNo로 조인
 
 

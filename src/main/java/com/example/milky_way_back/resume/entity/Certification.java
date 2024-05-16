@@ -7,7 +7,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Table(name="Member")
+@Table(name="certification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -27,7 +27,7 @@ public class Certification {
 
     // member join
     @JoinColumn(name="cert_member_no", referencedColumnName = "member_no", nullable = false)
-    @ManyToOne
+    @OneToOne
     private Member member; // memberNo로 조인
 
     /*todo file 처리 */
