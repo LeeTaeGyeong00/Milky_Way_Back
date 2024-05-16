@@ -30,7 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests((request) -> request.requestMatchers(PathRequest.toStaticResources()
                                 .atCommonLocations()).permitAll()
-                        .antMatchers("/signup", "/login").permitAll() // 해당 경로는 모두 접근 가능
+                        .antMatchers("/signup", "/login", "/signup/checkId").permitAll() // 해당 경로는 모두 접근 가능
                         .anyRequest().authenticated()
                 )
                 .cors()
