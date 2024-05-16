@@ -31,8 +31,8 @@ public class BasicInfo {
     private String studentResumeLocate;
 
     // member join
-    @JoinColumn(name="studentresume_member_no", referencedColumnName = "member_no")
-    @OneToOne
+    @JoinColumn(name="studentresume_member_no", referencedColumnName = "member_no", nullable = false)
+    @ManyToOne
     private Member member; // memberNo로 조인
 
 

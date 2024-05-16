@@ -30,8 +30,8 @@ public class Career {
     private LocalDateTime carEndDay;
 
     // member join
-    @JoinColumn(name="career_member_no", referencedColumnName = "member_no")
-    @OneToOne
+    @JoinColumn(name="career_member_no", referencedColumnName = "member_no", nullable = false)
+    @ManyToOne
     private Member member; // memberNo로 조인
 
 }

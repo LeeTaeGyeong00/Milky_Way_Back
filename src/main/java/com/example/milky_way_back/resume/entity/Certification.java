@@ -26,8 +26,8 @@ public class Certification {
     private LocalDateTime certDate;
 
     // member join
-    @JoinColumn(name="cert_member_no", referencedColumnName = "member_no")
-    @OneToOne
+    @JoinColumn(name="cert_member_no", referencedColumnName = "member_no", nullable = false)
+    @ManyToOne
     private Member member; // memberNo로 조인
 
     /*todo file 처리 */
