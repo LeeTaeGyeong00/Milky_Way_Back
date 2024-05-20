@@ -34,7 +34,7 @@ public class MyPageApiController {
     private final ArticleService articleService;
     private final ApplyService applyService;
     private final TokenProvider tokenProvider;
-    @GetMapping("/info")
+    @PostMapping("/info")
     public ResponseEntity<?> getMyPageInfo(@AuthenticationPrincipal UserDetails userDetails
                                            ,HttpServletRequest request
     ) {
