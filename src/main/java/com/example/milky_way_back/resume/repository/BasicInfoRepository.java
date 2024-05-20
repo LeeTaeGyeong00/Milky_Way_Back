@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface BasicInfoRepository extends JpaRepository<BasicInfo, Long> {
     List<BasicInfo> findByMember(Member member);
+    void deleteByMember(Long memberNo);
 }
 

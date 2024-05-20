@@ -1,9 +1,13 @@
 package com.example.milky_way_back.member.Jwt;
 
 import com.example.milky_way_back.member.Dto.TokenDto;
+import com.example.milky_way_back.member.Entity.RefreshToken;
+import com.example.milky_way_back.member.Repository.MemberRepository;
+import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,10 +29,14 @@ import java.util.stream.Collectors;
 public class TokenProvider {
 
     private final Key secretKey;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberRepository memberRepository;
 
-    public TokenProvider(@Value("${jwt.secret.key}") String key) {
+    public TokenProvider(@Value("${jwt.secret.key}") String key, RefreshTokenRepository refreshTokenRepository, MemberRepository memberRepository) {
+        this.refreshTokenRepository = refreshTokenRepository;
         byte[] keyBytes = Decoders.BASE64.decode(key);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        this.memberRepository = memberRepository;
     }
 
     // 유저 정보 가지고 토큰 생성
@@ -57,15 +65,22 @@ public class TokenProvider {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
+        RefreshToken refresh = RefreshToken.builder()
+                .authRefreshToken(refreshToken)
+                .member(memberRepository.findByMemberId(authentication.getName()).orElseThrow())
+                .build();
+
+        refreshTokenRepository.save(refresh);
+
         return TokenDto.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .build();
     }
 
     // jwt 복호화 하여 토큰 정보 꺼내기
     public Authentication getAuthentication(String accessToken) {
+
         Claims claims = parseClaims(accessToken);
 
         if (claims.get("auth") == null) {

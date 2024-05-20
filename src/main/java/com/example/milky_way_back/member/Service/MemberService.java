@@ -84,10 +84,10 @@ public class MemberService {
     }
 
     @Transactional
-    public TokenDto reissue(TokenRequestDto tokenRequestDto) {
+    public TokenRequestAndResponseDto reissue(TokenRequestAndResponseDto tokenRequestDto) {
 
-        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken())) {
-            throw new RuntimeException("Refresh Token 이 유효하지 않습니다.");
+        if(!tokenProvider.validateToken(tokenRequestDto.getAccessToken())) {
+            throw new RuntimeException("AccessToken이 유효하지 않습니다.");
         }
 
         Authentication authentication = tokenProvider.getAuthentication(tokenRequestDto.getAccessToken());
@@ -98,10 +98,16 @@ public class MemberService {
 
         TokenDto tokenDto = tokenProvider.createToken(authentication);
 
-        RefreshToken newRefreshToken = refreshToken.updateToken(tokenDto.getRefreshToken());
+        TokenRequestAndResponseDto tokenRequestAndResponseDto =
+                TokenRequestAndResponseDto.builder()
+                .accessToken(tokenDto.getAccessToken())
+                .build(); // 클라이언트 어세스 토큰 재발급
+
+        RefreshToken newRefreshToken = refreshToken.updateToken(tokenDto.getRefreshToken()); // 리프레시 재설정
+
         refreshTokenRepository.save(newRefreshToken);
 
-        return tokenDto;
+        return tokenRequestAndResponseDto; // 클라이언트측에는 어세스 토큰만 전달
     }
 
 }

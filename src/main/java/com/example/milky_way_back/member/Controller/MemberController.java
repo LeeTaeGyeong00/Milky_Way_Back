@@ -34,7 +34,7 @@ public class MemberController {
 
     // 리프레시 토큰
     @PostMapping("/reissue")
-    public ResponseEntity<TokenDto> reissue(@RequestBody TokenRequestDto tokenRequestDto) {
+    public ResponseEntity<TokenRequestAndResponseDto> reissue(@RequestBody TokenRequestAndResponseDto tokenRequestDto) {
         return ResponseEntity.ok(memberService.reissue(tokenRequestDto));
     }
 

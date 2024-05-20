@@ -1,11 +1,12 @@
 package com.example.milky_way_back.member.Dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class TokenRequestDto {
+@Builder
+public class TokenRequestAndResponseDto {
     String accessToken;
-    String refreshToken;
 }
