@@ -11,11 +11,11 @@ import java.util.List;
 @Getter
 @Setter
 public class MemberInfoResponse {
-    private List<BasicInfo> basicInfos;
-    private List<Career> careers;
-    private List<Certification> certifications;
+    private List<BasicInfoDto> basicInfos;
+    private List<CareerDto> careers;
+    private List<CertificationDto> certifications;
 
-    public MemberInfoResponse(List<BasicInfo> basicInfos, List<Career> careers, List<Certification> certifications) {
+    public MemberInfoResponse(List<BasicInfoDto> basicInfos, List<CareerDto> careers, List<CertificationDto> certifications) {
         this.basicInfos = basicInfos;
         this.careers = careers;
         this.certifications = certifications;

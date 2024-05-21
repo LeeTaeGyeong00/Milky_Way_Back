@@ -4,9 +4,7 @@ import com.example.milky_way_back.member.Dto.StatusResponse;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
 import com.example.milky_way_back.member.Repository.MemberRepository;
-import com.example.milky_way_back.resume.dto.BasicInfoDto;
-import com.example.milky_way_back.resume.dto.CareerAndCertificationDto;
-import com.example.milky_way_back.resume.dto.MemberInfoResponse;
+import com.example.milky_way_back.resume.dto.*;
 import com.example.milky_way_back.resume.entity.BasicInfo;
 import com.example.milky_way_back.resume.entity.Career;
 import com.example.milky_way_back.resume.entity.Certification;
@@ -22,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -120,9 +119,18 @@ public class StudentResumeService {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RuntimeException("회원을 찾을 수 없음"));
 
-        List<BasicInfo> basicInfos = basicInfoRepository.findByMember(member);
-        List<Career> careers = careerRepository.findByMember(member);
-        List<Certification> certifications = certificationRepository.findByMember(member);
+        List<BasicInfoDto> basicInfos = basicInfoRepository.findByMember(member);
+        List<CareerDto> careers = careerRepository.findByMember(member);
+        List<CertificationDto> certifications = certificationRepository.findByMember(member);
+
+        if(basicInfos.isEmpty() && careers.isEmpty() && certifications.isEmpty()) {
+            MemberInfoResponse memberInfoResponse = new MemberInfoResponse(basicInfos, careers, certifications);
+            memberInfoResponse.setBasicInfos(Collections.emptyList());
+            memberInfoResponse.setCareers(Collections.emptyList());
+            memberInfoResponse.setCertifications(Collections.emptyList());
+
+            return ResponseEntity.status(HttpStatus.OK).body(memberInfoResponse);
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(new MemberInfoResponse(basicInfos, careers, certifications));
 

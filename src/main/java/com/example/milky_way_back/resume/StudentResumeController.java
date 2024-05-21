@@ -4,11 +4,8 @@ import com.example.milky_way_back.member.Dto.StatusResponse;
 import com.example.milky_way_back.resume.dto.BasicInfoDto;
 import com.example.milky_way_back.resume.dto.CareerAndCertificationDto;
 import com.example.milky_way_back.resume.dto.MemberInfoResponse;
-import jdk.jshell.Snippet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
