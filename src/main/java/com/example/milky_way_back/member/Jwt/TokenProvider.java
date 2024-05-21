@@ -1,6 +1,7 @@
 package com.example.milky_way_back.member.Jwt;
 
 import com.example.milky_way_back.member.Dto.TokenDto;
+import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Entity.RefreshToken;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
@@ -18,6 +19,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +50,8 @@ public class TokenProvider {
 
         long now = (new Date()).getTime(); // 현재 시간
 
+        Member member = memberRepository.findByMemberId(authentication.getName()).orElseThrow();
+
         Date accessTokenExpire = new Date(now + 1800 * 1000); // 30분
         Date refreshTokenExpire = new Date(now + 86400000); // 1일
 
@@ -75,6 +79,7 @@ public class TokenProvider {
         return TokenDto.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
+                .memberName(member.getMemberName()) // 유저 아이디
                 .build();
     }
 

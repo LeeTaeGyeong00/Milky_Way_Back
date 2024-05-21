@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -83,6 +85,22 @@ public class MemberService {
         return tokenDto;
     }
 
+    // 로그아웃
+    public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
+
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
+
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow();
+
+        RefreshToken refreshToken = refreshTokenRepository.findByMember(member.getMemberNo()).orElseThrow();
+
+        refreshTokenRepository.deleteByMember(refreshToken.getMember().getMemberNo()); // 리프레시 토큰 삭제
+
+        return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "로그아웃 완료"));
+    }
+
+    // 토큰 재발급
     @Transactional
     public TokenRequestAndResponseDto reissue(TokenRequestAndResponseDto tokenRequestDto) {
 

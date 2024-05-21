@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RequiredArgsConstructor
 @RestController
 public class MemberController {
@@ -30,6 +32,11 @@ public class MemberController {
     @PostMapping("/signup/checkId")
     public ResponseEntity<StatusResponse> checkId(@RequestBody IdRequest idRequest) {
         return memberService.duplicationIdCheck(idRequest);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
+        return memberService.logout(request);
     }
 
     // 리프레시 토큰
