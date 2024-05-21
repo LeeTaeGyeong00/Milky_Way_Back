@@ -6,10 +6,10 @@ import com.example.milky_way_back.member.Entity.RefreshToken;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,7 +19,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,18 +28,23 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class TokenProvider {
 
-    private final Key secretKey;
     private final RefreshTokenRepository refreshTokenRepository;
     private final MemberRepository memberRepository;
 
-    public TokenProvider(@Value("${jwt.secret.key}") String key, RefreshTokenRepository refreshTokenRepository, MemberRepository memberRepository) {
-        this.refreshTokenRepository = refreshTokenRepository;
-        byte[] keyBytes = Decoders.BASE64.decode(key);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-        this.memberRepository = memberRepository;
+    @Value("${jwt.secret.key}")
+    private String secretKey;
+
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        byte[] bytes = Base64.decodeBase64(secretKey);
+        key = Keys.hmacShaKeyFor(bytes);
     }
+
 
     // 유저 정보 가지고 토큰 생성
     public TokenDto createToken(Authentication authentication) {
@@ -60,13 +65,13 @@ public class TokenProvider {
                 .setSubject(authentication.getName())
                 .claim("auth", authorities) /* todo claim 추가 */
                 .setExpiration(accessTokenExpire)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         // 리프레시 토큰 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(refreshTokenExpire)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         RefreshToken refresh = RefreshToken.builder()
@@ -79,6 +84,7 @@ public class TokenProvider {
         return TokenDto.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .memberName(member.getMemberName()) // 유저 아이디
                 .build();
     }
@@ -108,7 +114,7 @@ public class TokenProvider {
         try {
 
             Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
+                    .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
 
@@ -130,7 +136,7 @@ public class TokenProvider {
     private Claims parseClaims(String accessToken) {
         try {
             return Jwts.parserBuilder()
-                    .setSigningKey(secretKey)
+                    .setSigningKey(key)
                     .build()
                     .parseClaimsJws(accessToken)
                     .getBody();

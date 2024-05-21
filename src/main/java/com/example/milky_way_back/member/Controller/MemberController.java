@@ -34,10 +34,11 @@ public class MemberController {
         return memberService.duplicationIdCheck(idRequest);
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
-        return memberService.logout(request);
-    }
+//    // 로그아웃
+//    @PostMapping("/logout")
+//    public ResponseEntity<StatusResponse> logout() {
+//        return memberService.logout();
+//    }
 
     // 리프레시 토큰
     @PostMapping("/reissue")

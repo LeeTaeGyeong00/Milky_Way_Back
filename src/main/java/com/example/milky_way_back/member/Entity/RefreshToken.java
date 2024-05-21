@@ -9,7 +9,7 @@ import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 
-@Table(name="Auth")
+@Table(name="RefreshToken")
 @NoArgsConstructor
 @Entity
 @Data
@@ -19,15 +19,15 @@ public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "auth_no")
+    @Column(name = "refreshToken_no")
     private Long authNo; // 고유 번호
 
     // member join
-    @JoinColumn(name="auth_member_no", referencedColumnName = "member_no")
+    @JoinColumn(name="refreshToken_member_no", referencedColumnName = "member_no")
     @OneToOne
     private Member member; // memberNo로 조인
 
-    @Column(name="auth_refreshtoken")
+    @Column(name="refreshToken_refreshtoken")
     private String authRefreshToken; // 리프레시 토큰
 
     public RefreshToken updateToken(String token) {
