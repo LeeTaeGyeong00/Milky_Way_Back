@@ -84,8 +84,8 @@ public class TokenProvider {
         return TokenDto.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .memberName(member.getMemberName()) // 유저 아이디
+                .memberNo(member.getMemberNo()) // 유저 넘버
                 .build();
     }
 
