@@ -8,12 +8,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Table(name="Member")
+@Table(name="member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @AllArgsConstructor
 @Builder
+@Setter
 public class Member {
 
     @Id

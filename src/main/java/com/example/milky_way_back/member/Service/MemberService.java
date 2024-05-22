@@ -1,5 +1,6 @@
 package com.example.milky_way_back.member.Service;
 
+import com.example.milky_way_back.article.exception.UnauthorizedAccessException;
 import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Entity.RefreshToken;
@@ -18,7 +19,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
@@ -126,5 +126,64 @@ public class MemberService {
 
         return tokenRequestAndResponseDto; // 클라이언트측에는 어세스 토큰만 전달
     }
+    public MyPageResponse getMemberInfo() {
+        // SecurityContext에서 인증 정보 가져오기
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = securityContext.getAuthentication();
 
+        // 인증 정보에서 회원 ID 가져오기
+        String memberId = authentication.getName();
+
+        // 회원 ID로 회원 정보 조회
+        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+        if (optionalMember.isPresent()) {
+            Member member = optionalMember.get();
+            // 회원 정보를 MyPageResponse DTO로 매핑
+            MyPageResponse myPageResponse = new MyPageResponse();
+            myPageResponse.setMemberId(member.getMemberId());
+            myPageResponse.setMemberName(member.getMemberName());
+            myPageResponse.setMemberPhoneNum(member.getMemberPhoneNum());
+            myPageResponse.setMemberEmail(member.getMemberEmail());
+            return myPageResponse;
+        } else {
+            // 회원 정보가 없을 경우 처리
+            // 예: throw new EntityNotFoundException("회원 정보를 찾을 수 없습니다.");
+            return null;
+        }
+    }
+
+    @Transactional
+    public boolean updateMemberInfo(MyPageRequest myPageRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentMemberId = authentication.getName();
+        System.out.println(myPageRequest.getMemberId());
+        System.out.println(currentMemberId);
+        // Check if the current user's memberId matches the provided memberId
+        if (!currentMemberId.equals(myPageRequest.getMemberId())) {
+            throw new UnauthorizedAccessException("You are not authorized to update this user's information");
+        }
+
+        Optional<Member> optionalMember = memberRepository.findByMemberId(currentMemberId);
+        if (optionalMember.isPresent()) {
+            Member member = optionalMember.get();
+            // Update only if the field is not null
+            if (myPageRequest.getMemberPassword() != null) {
+                String encodedPassword = passwordEncoder.encode(myPageRequest.getMemberPassword());
+                member.setMemberPassword(encodedPassword);
+            }
+            if (myPageRequest.getMemberName() != null) {
+                member.setMemberName(myPageRequest.getMemberName());
+            }
+            if (myPageRequest.getMemberPhoneNum() != null) {
+                member.setMemberPhoneNum(myPageRequest.getMemberPhoneNum());
+            }
+            if (myPageRequest.getMemberEmail() != null) {
+                member.setMemberEmail(myPageRequest.getMemberEmail());
+            }
+            member.setLastModifiedDate(LocalDateTime.now());
+            memberRepository.save(member);
+            return true;
+        }
+        return false; // Member not found
+    }
 }

@@ -1,13 +1,8 @@
 package com.example.milky_way_back.article.controller;
 
-import com.example.milky_way_back.article.DTO.ArticleViewResponse;
-import com.example.milky_way_back.article.entity.Article;
-import com.example.milky_way_back.article.service.ArticleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+
 @RequiredArgsConstructor
 @Controller
 public class ArticleController {
