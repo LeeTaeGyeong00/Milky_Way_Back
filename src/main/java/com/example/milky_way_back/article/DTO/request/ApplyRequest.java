@@ -15,5 +15,6 @@ import lombok.Setter;
 public class ApplyRequest {
     private Long articleNo;
     // 회원 번호를 여기에 저장할 필요 없으므로 삭제 또는 주석 처리
-     private String memberId;
+     private String memberName;
+     private String memberNo;
 }

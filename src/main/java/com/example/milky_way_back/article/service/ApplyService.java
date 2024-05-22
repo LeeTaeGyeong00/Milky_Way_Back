@@ -1,5 +1,7 @@
 package com.example.milky_way_back.article.service;
 
+import com.example.milky_way_back.article.DTO.MemberDTO;
+import com.example.milky_way_back.article.DTO.ArticleDTO;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.ApplyRequest;
@@ -11,7 +13,6 @@ import com.example.milky_way_back.article.exception.MemberNotFoundException;
 import com.example.milky_way_back.article.repository.ApplyRepository;
 import com.example.milky_way_back.article.repository.ArticleRepository;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
-import com.example.milky_way_back.member.Repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -31,11 +32,11 @@ public class ApplyService {
     private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
 
-//    public List<Apply> findAll() {
+    //    public List<Apply> findAll() {
 //        return applyRepository.findAll();
 //    }
     @Transactional
-     //회원 번호와 게시글 번호를 받아 지원 정보를 처리하는 메서드
+    //회원 번호와 게시글 번호를 받아 지원 정보를 처리하는 메서드
     public Apply apply(String accessToken, Long articleNo, ApplyRequest request) {
         // SecurityContext에서 인증 정보 가져오기
         SecurityContext securityContext = SecurityContextHolder.getContext();
@@ -50,7 +51,7 @@ public class ApplyService {
             // AddArticle에 회원 정보 설정
             Apply apply = Apply.builder()
                     .article(articleRepository.findById(articleNo).orElseThrow(() -> new ArticleNotFoundException("Article not found with ID: " + articleNo)))
-                    .memberId(member) // Set the Member object directly
+                    .member(member) // Set the Member object directly
                     .build();
             // 게시물 저장
             return applyRepository.save(apply);
@@ -59,7 +60,6 @@ public class ApplyService {
             throw new MemberNotFoundException("Member not found with ID: " + memberId);
         }
     }
-
 
 
     public List<ApplyResponse> findMemberNamesByArticleNo(Long article_no) {
@@ -85,14 +85,26 @@ public class ApplyService {
             List<MyPageApplyResponse> myPageApplies = new ArrayList<>();
             for (Apply apply : applies) {
                 MyPageApplyResponse myPageApplyResponse = new MyPageApplyResponse();
-                myPageApplyResponse.setApply_no(apply.getApply_no());
-                myPageApplyResponse.setArticle(apply.getArticle());
+                myPageApplyResponse.setApplyNo(apply.getApply_no());
                 myPageApplyResponse.setApplyDate(apply.getApplyDate());
                 myPageApplyResponse.setApplyResult(apply.getApplyResult());
 
+                // Convert Article entity to MyPageArticleDTO
+                ArticleDTO articleDTO = new ArticleDTO();
+                articleDTO.setArticleNo(apply.getArticle().getArticle_no());
+                articleDTO.setApplyTitle(apply.getArticle().getTitle());
+
+                // Convert Member entity to ApplyMemberDTO
+                MemberDTO memberDTO = new MemberDTO();
+                memberDTO.setApplyMemberNo(apply.getArticle().getMemberId().getMemberNo());
+                memberDTO.setApplyMemberName(apply.getArticle().getMemberId().getMemberName());
+
+                articleDTO.setApplyMember(memberDTO);
+
+                myPageApplyResponse.setArticle(articleDTO);
+
                 myPageApplies.add(myPageApplyResponse);
             }
-
             return myPageApplies;
         } else {
             // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
@@ -100,3 +112,4 @@ public class ApplyService {
         }
     }
 }
+

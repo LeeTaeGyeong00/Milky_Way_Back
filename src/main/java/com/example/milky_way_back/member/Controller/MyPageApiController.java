@@ -34,7 +34,7 @@ public class MyPageApiController {
     private final ArticleService articleService;
     private final ApplyService applyService;
     private final TokenProvider tokenProvider;
-    @PostMapping("/info")
+    @GetMapping("/info")
     public ResponseEntity<?> getMyPageInfo(@AuthenticationPrincipal UserDetails userDetails
                                            ,HttpServletRequest request
     ) {
@@ -50,18 +50,8 @@ public class MyPageApiController {
         try {
             // 회원 정보 조회
             MyPageResponse memberInfo = memberService.getMemberInfo();
-            // 아티클 정보 조회
-            List<MyPageArticleResponse> articles = articleService.getArticlesByMemberId();
-            // 신청 정보 조회
-            List<MyPageApplyResponse> applies = applyService.getAppliesByMemberId();
 
-            // 결과 조합
-            Map<String, Object> result = new HashMap<>();
-            result.put("member", memberInfo);
-            result.put("articles", articles);
-            result.put("applies", applies);
-
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(memberInfo);
         } catch (Exception e) {
             // 예외 처리
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -69,6 +59,55 @@ public class MyPageApiController {
         }
     }
 
+
+    @GetMapping("/applyinfo")
+    public ResponseEntity<?> getMyApplyInfo(@AuthenticationPrincipal UserDetails userDetails
+            ,HttpServletRequest request
+    ) {
+        if (userDetails == null) {
+            // 사용자가 인증되지 않은 경우
+            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
+        }
+        // Jwt 토큰에서 회원 정보를 가져옴
+        String accessToken = extractTokenFromRequest(request);
+        if (accessToken == null) {
+            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
+        }
+        try {
+
+                // 신청 정보 조회
+                List<MyPageApplyResponse> applies = applyService.getAppliesByMemberId();
+
+            return ResponseEntity.ok(applies);
+        } catch (Exception e) {
+            // 예외 처리
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while fetching my page data");
+        }
+    }
+    @GetMapping("/articleinfo")
+    public ResponseEntity<?> getMyArticleInfo(@AuthenticationPrincipal UserDetails userDetails
+            ,HttpServletRequest request
+    ) {
+        if (userDetails == null) {
+            // 사용자가 인증되지 않은 경우
+            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
+        }
+        // Jwt 토큰에서 회원 정보를 가져옴
+        String accessToken = extractTokenFromRequest(request);
+        if (accessToken == null) {
+            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
+        }
+        try {
+            // 아티클 정보 조회
+            List<MyPageArticleResponse> articles = articleService.getArticlesByMemberId();
+            return ResponseEntity.ok(articles);
+        } catch (Exception e) {
+            // 예외 처리
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while fetching my page data");
+        }
+    }
 
     @PutMapping("/update")
     public ResponseEntity<String> updateMemberInfo(@RequestBody MyPageRequest myPageRequest) {

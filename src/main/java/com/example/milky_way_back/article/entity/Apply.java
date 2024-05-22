@@ -37,8 +37,8 @@ public class Apply {
     private String applyResult = "신청"; //status
 
     @Builder
-    public Apply(Article article, Member memberId) {
+    public Apply(Article article, Member member) {
         this.article = article;
-        this.memberId = memberId;
+        this.memberId = member;
     }
 }

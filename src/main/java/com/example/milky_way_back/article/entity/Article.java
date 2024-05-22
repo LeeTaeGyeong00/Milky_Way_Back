@@ -22,7 +22,6 @@ import java.util.List;
 @Getter
 public class Article {
     //멤버 일대다 적용
-    //멤버 일대다 적용
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="article_no", updatable = false)

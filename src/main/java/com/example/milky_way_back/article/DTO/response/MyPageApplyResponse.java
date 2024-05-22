@@ -1,6 +1,6 @@
 package com.example.milky_way_back.article.DTO.response;
 
-import com.example.milky_way_back.article.entity.Article;
+import com.example.milky_way_back.article.DTO.ArticleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class MyPageApplyResponse {
-    private Long apply_no;
-    private Article article;
+    private Long applyNo;
+    private ArticleDTO article;
     private LocalDateTime applyDate;
     private String applyResult;
 }

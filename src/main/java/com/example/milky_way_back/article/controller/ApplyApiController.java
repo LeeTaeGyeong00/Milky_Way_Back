@@ -60,7 +60,7 @@ public class ApplyApiController {
 
     //결과 지원 바꾸기
     @PutMapping("/update/{applyId}")
-    public ResponseEntity<String> updateApplyResult(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long applyId, @RequestBody ChangeApplyResult requestBody) {
+    public ResponseEntity<String> updateApplyResult(@PathVariable Long applyId, @RequestBody ChangeApplyResult requestBody) {
         // SecurityContext에서 인증 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

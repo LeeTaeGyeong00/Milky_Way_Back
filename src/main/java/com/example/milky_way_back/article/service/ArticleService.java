@@ -1,5 +1,6 @@
 package com.example.milky_way_back.article.service;
 
+import com.example.milky_way_back.article.DTO.response.ArticleViewResponse;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.AddArticle;
@@ -59,7 +60,24 @@ public class ArticleService {
         return articleRepository.findAll(pageable);
     }
 
-    public Article findById (long id) {
+//    public Article findById (long id) {
+//        // SecurityContext에서 인증 정보 가져오기
+//        SecurityContext securityContext = SecurityContextHolder.getContext();
+//        Authentication authentication = securityContext.getAuthentication();
+//
+//        // 인증 정보에서 회원 ID 가져오기
+//        String memberId = authentication.getName();
+//        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+//        if (optionalMember.isPresent()) {
+//            return articleRepository.findById(id)
+//                    .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+//        } else {
+//            // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
+//            throw new MemberNotFoundException("Member not found with ID: " + memberId);
+//        }
+//
+//    }
+    public ArticleViewResponse findById(long id) {
         // SecurityContext에서 인증 정보 가져오기
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = securityContext.getAuthentication();
@@ -68,13 +86,14 @@ public class ArticleService {
         String memberId = authentication.getName();
         Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
         if (optionalMember.isPresent()) {
-            return articleRepository.findById(id)
+            Article article = articleRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+
+            return new ArticleViewResponse(article);
         } else {
             // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
             throw new MemberNotFoundException("Member not found with ID: " + memberId);
         }
-
     }
     public void delete(long id){
         articleRepository.deleteById(id);

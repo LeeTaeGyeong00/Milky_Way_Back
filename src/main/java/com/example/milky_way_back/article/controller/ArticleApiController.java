@@ -1,5 +1,6 @@
 package com.example.milky_way_back.article.controller;
 
+import com.example.milky_way_back.article.exception.MemberNotFoundException;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.AddArticle;
 import com.example.milky_way_back.article.DTO.response.ArticleListView;
@@ -77,11 +78,22 @@ public ResponseEntity<Article> addBoard(@AuthenticationPrincipal UserDetails use
         return ResponseEntity.ok(articleListViewPage);
     }
 
+//    @GetMapping("/posts/{id}")
+//    public ResponseEntity<ArticleViewResponse> findBoard(@PathVariable long id
+//    ){
+//        Article article = articleService.findById(id);
+//        return ResponseEntity.ok().body(new ArticleViewResponse(article));
+//    }
     @GetMapping("/posts/{id}")
-    public ResponseEntity<ArticleViewResponse> findBoard(@PathVariable long id
-    ){
-        Article article = articleService.findById(id);
-        return ResponseEntity.ok().body(new ArticleViewResponse(article));
+    public ResponseEntity<ArticleViewResponse> getArticleById(@PathVariable long id) {
+        try {
+            ArticleViewResponse articleDTO = articleService.findById(id);
+            return ResponseEntity.ok(articleDTO);
+        } catch (MemberNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
     //DELETE
     @DeleteMapping("/posts/{id}")
