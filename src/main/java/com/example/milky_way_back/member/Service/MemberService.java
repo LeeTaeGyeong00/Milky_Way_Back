@@ -8,20 +8,20 @@ import com.example.milky_way_back.member.Jwt.TokenProvider;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import javax.servlet.http.HttpServletRequest;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -89,11 +89,20 @@ public class MemberService {
         return tokenDto;
     }
 
+    // 로그아웃
     @Transactional
-    public TokenDto reissue(TokenRequestDto tokenRequestDto) {
+    public ResponseEntity<StatusResponse> logout() {
 
-        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken())) {
-            throw new RuntimeException("Refresh Token 이 유효하지 않습니다.");
+
+        return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "로그아웃 완료"));
+    }
+
+    // 토큰 재발급
+    @Transactional
+    public TokenDto reissue(TokenDto tokenRequestDto) {
+
+        if(!tokenProvider.validateToken(tokenRequestDto.getAccessToken())) {
+            throw new RuntimeException("AccessToken이 유효하지 않습니다.");
         }
 
         Authentication authentication = tokenProvider.getAuthentication(tokenRequestDto.getAccessToken());
@@ -104,10 +113,18 @@ public class MemberService {
 
         TokenDto tokenDto = tokenProvider.createToken(authentication);
 
-        RefreshToken newRefreshToken = refreshToken.updateToken(tokenDto.getRefreshToken());
+        TokenDto tokenRequestAndResponseDto =
+                TokenDto.builder()
+                .accessToken(tokenDto.getAccessToken())
+                        .memberNo(member.getMemberNo())
+                        .memberName(member.getMemberName())
+                .build(); // 클라이언트 어세스 토큰 재발급
+
+        RefreshToken newRefreshToken = refreshToken.updateToken(tokenDto.getRefreshToken()); // 리프레시 재설정
+
         refreshTokenRepository.save(newRefreshToken);
 
-        return tokenDto;
+        return tokenRequestAndResponseDto; // 클라이언트측에는 어세스 토큰만 전달
     }
     public MyPageResponse getMemberInfo() {
         // SecurityContext에서 인증 정보 가져오기

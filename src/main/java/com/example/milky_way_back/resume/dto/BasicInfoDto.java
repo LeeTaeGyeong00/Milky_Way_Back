@@ -6,4 +6,5 @@ import lombok.Data;
 public class BasicInfoDto {
     private String studentLocate;
     private String studentMajor;
+    private String oneLineShow;
 }

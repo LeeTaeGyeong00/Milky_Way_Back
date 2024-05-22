@@ -5,9 +5,9 @@ import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RequiredArgsConstructor
 @RestController
@@ -32,10 +32,16 @@ public class MemberController {
         return memberService.duplicationIdCheck(idRequest);
     }
 
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
+        return memberService.logout();
+    }
+
     // 리프레시 토큰
     @PostMapping("/reissue")
-    public ResponseEntity<TokenDto> reissue(@RequestBody TokenRequestDto tokenRequestDto) {
-        return ResponseEntity.ok(memberService.reissue(tokenRequestDto));
+    public ResponseEntity<TokenDto> reissue(@RequestBody TokenDto tokenDto) {
+        return ResponseEntity.ok(memberService.reissue(tokenDto));
     }
 
 }
