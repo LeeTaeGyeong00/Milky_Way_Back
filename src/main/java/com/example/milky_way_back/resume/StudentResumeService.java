@@ -4,9 +4,10 @@ import com.example.milky_way_back.member.Dto.StatusResponse;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
 import com.example.milky_way_back.member.Repository.MemberRepository;
-import com.example.milky_way_back.resume.dto.BasicInfoDto;
-import com.example.milky_way_back.resume.dto.CareerAndCertificationDto;
-import com.example.milky_way_back.resume.dto.MemberInfoResponse;
+import com.example.milky_way_back.resume.dto.BasicInfoReqeustDto;
+import com.example.milky_way_back.resume.dto.BasicInfoResponse;
+import com.example.milky_way_back.resume.dto.CareerAndCertificationReqeustDto;
+import com.example.milky_way_back.resume.dto.CareerAndCertificationResponse;
 import com.example.milky_way_back.resume.entity.BasicInfo;
 import com.example.milky_way_back.resume.entity.Career;
 import com.example.milky_way_back.resume.entity.Certification;
@@ -17,11 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +34,7 @@ public class StudentResumeService {
 
 
     // 기본 정보 저장
-    public ResponseEntity<StatusResponse> updateBasicInfo(BasicInfoDto basicInfoDto, HttpServletRequest request) {
+    public ResponseEntity<StatusResponse> updateBasicInfo(BasicInfoReqeustDto basicInfoReqeustDto, HttpServletRequest request) {
 
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
 
@@ -43,8 +42,9 @@ public class StudentResumeService {
         Member member = memberRepository.findByMemberId(memberId).orElseThrow();
 
         BasicInfo basicInfo = BasicInfo.builder()
-                .studentresumeMajor(basicInfoDto.getStudentMajor())
-                .studentResumeLocate(basicInfoDto.getStudentLocate())
+                .studentresumeMajor(basicInfoReqeustDto.getStudentMajor())
+                .studentResumeLocate(basicInfoReqeustDto.getStudentLocate())
+                .studentResumeOnelineshow(basicInfoReqeustDto.getStudentOneLineShow())
                 .member(member)
                 .build();
 
@@ -56,7 +56,8 @@ public class StudentResumeService {
 
 
     // 경력, 자격증 저장
-    public ResponseEntity<StatusResponse> updateCarCert(CareerAndCertificationDto careerAndCertificationDto,  HttpServletRequest request) {
+    public ResponseEntity<StatusResponse> updateCarCert(CareerAndCertificationReqeustDto careerAndCertificationDto, HttpServletRequest request) {
+
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
 
         String memberId = authentication.getName(); // 접속한 사람의 아이디 가져오기
@@ -96,7 +97,7 @@ public class StudentResumeService {
     }
 
     // 경력, 자격증 수정 시 기존 내용 삭제
-    public void modifyCarrerAndCertification(HttpServletRequest request) {
+    public void modifyCareerAndCertification(HttpServletRequest request) {
 
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
         String memberId = authentication.getName();
@@ -108,8 +109,8 @@ public class StudentResumeService {
         certificationRepository.deleteByMember(member.getMemberNo());
     }
 
-    // 정보 값 가져오기
-    public ResponseEntity<MemberInfoResponse> findAll( HttpServletRequest request) {
+    // 기본 정보 값 가져오기
+    public ResponseEntity<BasicInfoResponse> findBasicInfo(HttpServletRequest request) {
 
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
 
@@ -118,25 +119,39 @@ public class StudentResumeService {
         Member member = memberRepository.findByMemberId(memberId).orElseThrow();
 
         BasicInfo basicInfos = basicInfoRepository.findByMember(member);
-        Career careers = careerRepository.findByMember(member);
-        Certification certifications = certificationRepository.findByMember(member);
 
-        MemberInfoResponse memberInfoResponse = MemberInfoResponse.builder()
-
+        BasicInfoResponse basicInfoReqeustDto = BasicInfoResponse.builder()
                 .studentLocate(basicInfos.getStudentResumeLocate())
                 .studentMajor(basicInfos.getStudentresumeMajor())
                 .studentOneLineShow(basicInfos.getStudentResumeOnelineshow())
+                .build();
 
+        return ResponseEntity.status(HttpStatus.OK).body(basicInfoReqeustDto);
+
+    }
+
+    // 자격증, 경력 값 가져오기
+    public ResponseEntity<CareerAndCertificationResponse> findCareerAndCertification(HttpServletRequest request) {
+
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+
+        String memberId = authentication.getName(); // 접속한 사람의 아이디 가져오기
+
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow();
+
+        Career careers = careerRepository.findByMember(member);
+        Certification certifications = certificationRepository.findByMember(member);
+
+        CareerAndCertificationResponse careerAndCertificationDto = CareerAndCertificationResponse.builder()
                 .carName(careers.getCarName())
                 .carStartDay(careers.getCarStartDay())
                 .carEndDay(careers.getCarEndDay())
 
                 .certName(certifications.getCertName())
                 .certDate(certifications.getCertDate())
-
                 .build();
 
-        return ResponseEntity.status(HttpStatus.OK).body(memberInfoResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(careerAndCertificationDto);
 
     }
 

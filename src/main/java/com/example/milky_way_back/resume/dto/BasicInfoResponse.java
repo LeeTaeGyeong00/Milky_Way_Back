@@ -1,9 +1,13 @@
 package com.example.milky_way_back.resume.dto;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-public class BasicInfoDto {
+@Getter
+@Setter
+@Builder
+public class BasicInfoResponse {
     private String studentLocate;
     private String studentMajor;
     private String studentOneLineShow;
