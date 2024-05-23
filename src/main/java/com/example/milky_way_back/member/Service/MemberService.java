@@ -108,23 +108,24 @@ public class MemberService {
     // 리프레시 토큰 확인 후 재발급 관련
     @Transactional
     public TokenDto reissue(HttpServletRequest request) {
+
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
 
         String memberId = authentication.getName();
 
         Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new UsernameNotFoundException("회원 정보가 없습니다."));
 
-        String refreshToken = refreshTokenRepository.findByMember(member).get().getAuthRefreshToken();
+        RefreshToken refreshToken = refreshTokenRepository.findByMember(member).orElseThrow();
 
-        boolean refreshTokenValid = tokenProvider.validateToken(refreshToken);
+        boolean refreshTokenValid = tokenProvider.validateToken(refreshToken.getAuthRefreshToken());
 
         if(refreshTokenValid) {
+            return tokenProvider.createAccessToken(authentication);
+        } else {
             return TokenDto.builder()
-                    .refreshToken(refreshToken)
+                    .refreshToken(refreshToken.getAuthRefreshToken())
                     .accessToken(request.getHeader("Authorization"))
                     .build();
-        } else {
-            return tokenProvider.createToken(authentication);
         }
     }
 

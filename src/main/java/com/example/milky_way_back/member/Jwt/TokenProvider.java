@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -27,11 +28,11 @@ public class TokenProvider {
     private final Key secretKey;
 
     public TokenProvider(@Value("${jwt.secret.key}") String key) {
-        byte[] keyBytes = Decoders.BASE64.decode(key);
+        byte[] keyBytes = Base64.getDecoder().decode(key);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // 유저 정보 가지고 토큰 생성
+    // 유저 정보 가지고 refresh, access 토큰 생성
     public TokenDto createToken(Authentication authentication) {
 
         String authorities = authentication.getAuthorities().stream()
@@ -53,7 +54,9 @@ public class TokenProvider {
 
         // 리프레시 토큰 생성
         String refreshToken = Jwts.builder()
+                .setSubject(authentication.getName())
                 .setExpiration(refreshTokenExpire)
+                .claim("auth", authorities) /* todo claim 추가 */
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -61,6 +64,31 @@ public class TokenProvider {
                 .grantType("Bearer")
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .build();
+    }
+
+    // access token만 재생성
+    public TokenDto createAccessToken(Authentication authentication) {
+
+        String authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        long now = (new Date()).getTime(); // 현재 시간
+
+        Date accessTokenExpire = new Date(now + 1800 * 1000); // 30분
+
+        // 어세스 토큰 생성
+        String accessToken = Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim("auth", authorities) /* todo claim 추가 */
+                .setExpiration(accessTokenExpire)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
+
+        return TokenDto.builder()
+                .grantType("Bearer")
+                .accessToken(accessToken)
                 .build();
     }
 

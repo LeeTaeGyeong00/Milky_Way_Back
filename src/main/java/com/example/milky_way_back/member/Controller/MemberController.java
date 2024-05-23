@@ -5,6 +5,7 @@ import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,7 +42,7 @@ public class MemberController {
     }
 
     // 로그아웃
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
         return memberService.logout(request);
     }

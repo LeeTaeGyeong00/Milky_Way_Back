@@ -31,11 +31,12 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
-    // 헤더에서 토큰 가져오기
     private String getJwtToken(HttpServletRequest request) {
+
         String bearerToken = request.getHeader("Authorization");
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
-            return bearerToken.split(" ")[1].trim();
+
+        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
         }
 
         return null;
