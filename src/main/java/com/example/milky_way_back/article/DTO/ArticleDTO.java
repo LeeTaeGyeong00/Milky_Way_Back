@@ -11,8 +11,8 @@ import lombok.Setter;
 @Setter
 public class ArticleDTO {
     private Long articleNo;
-    private MemberDTO applyMember;
-    private String applyTitle;
+    private MemberDTO Member;
+    private String Title;
     private String conMethod;
     private String conInfo;
 }

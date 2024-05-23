@@ -10,6 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MemberDTO {
-    private Long applyMemberNo;
-    private String applyMemberName;
+    private Long MemberNo;
+    private String MemberName;
 }

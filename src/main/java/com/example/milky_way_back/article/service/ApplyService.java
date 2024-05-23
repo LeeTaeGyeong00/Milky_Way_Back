@@ -92,16 +92,16 @@ public class ApplyService {
                 // Convert Article entity to MyPageArticleDTO
                 ArticleDTO articleDTO = new ArticleDTO();
                 articleDTO.setArticleNo(apply.getArticle().getArticle_no());
-                articleDTO.setApplyTitle(apply.getArticle().getTitle());
+                articleDTO.setTitle(apply.getArticle().getTitle());
 
                 // Convert Member entity to ApplyMemberDTO
                 MemberDTO memberDTO = new MemberDTO();
-                memberDTO.setApplyMemberNo(apply.getArticle().getMemberId().getMemberNo());
-                memberDTO.setApplyMemberName(apply.getArticle().getMemberId().getMemberName());
+                memberDTO.setMemberNo(apply.getArticle().getMemberId().getMemberNo());
+                memberDTO.setMemberName(apply.getArticle().getMemberId().getMemberName());
 
-                articleDTO.setApplyMember(memberDTO);
+                articleDTO.setMember(memberDTO);
 
-                myPageApplyResponse.setArticle(articleDTO);
+                myPageApplyResponse.setApplyArticle(articleDTO);
 
                 myPageApplies.add(myPageApplyResponse);
             }

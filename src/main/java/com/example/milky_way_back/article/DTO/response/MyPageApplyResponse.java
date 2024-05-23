@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 public class MyPageApplyResponse {
     private Long applyNo;
-    private ArticleDTO article;
+    private ArticleDTO applyArticle;
     private LocalDateTime applyDate;
     private String applyResult;
 }

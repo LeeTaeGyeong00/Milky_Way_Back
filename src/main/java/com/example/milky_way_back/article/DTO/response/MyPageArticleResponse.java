@@ -13,12 +13,14 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class MyPageArticleResponse {
-    private Long article_no;
-    private String articleType;
-    private String title;
-    private boolean findMentor;
-    private boolean recruit;
-    private int apply;
-    private int applyNow;
-    private int likes;
+    private Long cardArticle_no;
+    private String cardArticleType;
+    private String cardTitle;
+    private boolean cardFindMentor;
+    private boolean cardRecruit;
+    private int cardApply;
+    private int cardApplyNow;
+    private int cardLikes;
+    private String cardEndDay;
+    private String cardStartDay;
 }

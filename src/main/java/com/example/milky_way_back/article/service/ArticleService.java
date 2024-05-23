@@ -134,14 +134,16 @@ public class ArticleService {
             List<MyPageArticleResponse> myPageArticles = new ArrayList<>();
             for (Article article : articles) {
                 MyPageArticleResponse myPageArticleResponse = new MyPageArticleResponse();
-                myPageArticleResponse.setArticle_no(article.getArticle_no());
-                myPageArticleResponse.setArticleType(article.getArticleType());
-                myPageArticleResponse.setTitle(article.getTitle());
-                myPageArticleResponse.setFindMentor(article.isFindMentor());
-                myPageArticleResponse.setRecruit(article.getRecruit());
-                myPageArticleResponse.setApply(article.getApply());
-                myPageArticleResponse.setApplyNow(article.getApplyNow());
-                myPageArticleResponse.setLikes(article.getLikes());
+                myPageArticleResponse.setCardArticle_no(article.getArticle_no());
+                myPageArticleResponse.setCardArticleType(article.getArticleType());
+                myPageArticleResponse.setCardTitle(article.getTitle());
+                myPageArticleResponse.setCardFindMentor(article.isFindMentor());
+                myPageArticleResponse.setCardRecruit(article.getRecruit());
+                myPageArticleResponse.setCardApply(article.getApply());
+                myPageArticleResponse.setCardApplyNow(article.getApplyNow());
+                myPageArticleResponse.setCardLikes(article.getLikes());
+                myPageArticleResponse.setCardStartDay(article.getStartDay());
+                myPageArticleResponse.setCardEndDay(article.getEndDay());
                 // 나머지 필드도 필요에 따라 추가
                 myPageArticles.add(myPageArticleResponse);
             }

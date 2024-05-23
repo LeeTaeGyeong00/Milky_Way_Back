@@ -14,16 +14,18 @@ public class ArticleListView {
     private final int apply;
     private final int applyNow;
     private final int likes;
+    private final String startDay;
 
     public ArticleListView(Article article){
         this.article_no = article.getArticle_no();
         this.articleType = article.getArticleType();
         this.title = article.getTitle();
         this.apply = article.getApply();
-        this.endDay = article.getEndDay();
         this.findMentor = article.isFindMentor();
         this.recruit = article.getRecruit();
         this.applyNow = article.getApplyNow();
         this.likes = article.getLikes();
+        this.startDay = article.getStartDay();
+        this.endDay = article.getEndDay();
     }
 }
