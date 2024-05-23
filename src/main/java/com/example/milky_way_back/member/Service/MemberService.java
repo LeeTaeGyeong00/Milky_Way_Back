@@ -15,10 +15,12 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -90,25 +92,43 @@ public class MemberService {
     }
 
     @Transactional
-    public TokenDto reissue(TokenRequestDto tokenRequestDto) {
+    public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
 
-        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken())) {
-            throw new RuntimeException("Refresh Token 이 유효하지 않습니다.");
-        }
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
 
-        Authentication authentication = tokenProvider.getAuthentication(tokenRequestDto.getAccessToken());
+        String memberId = authentication.getName();
 
-        Member member = memberRepository.findByMemberId(authentication.getName()).get();
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new UsernameNotFoundException("회원 정보가 없습니다."));
 
-        RefreshToken refreshToken = refreshTokenRepository.findByMember(member.getMemberNo()).orElseThrow();
+        refreshTokenRepository.deleteByMember(member);
 
-        TokenDto tokenDto = tokenProvider.createToken(authentication);
-
-        RefreshToken newRefreshToken = refreshToken.updateToken(tokenDto.getRefreshToken());
-        refreshTokenRepository.save(newRefreshToken);
-
-        return tokenDto;
+        return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "로그아웃 완료"));
     }
+
+    // 리프레시 토큰 확인 후 재발급 관련
+    @Transactional
+    public TokenDto reissue(HttpServletRequest request) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+
+        String memberId = authentication.getName();
+
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new UsernameNotFoundException("회원 정보가 없습니다."));
+
+        String refreshToken = refreshTokenRepository.findByMember(member).get().getAuthRefreshToken();
+
+        boolean refreshTokenValid = tokenProvider.validateToken(refreshToken);
+
+        if(refreshTokenValid) {
+            return TokenDto.builder()
+                    .refreshToken(refreshToken)
+                    .accessToken(request.getHeader("Authorization"))
+                    .build();
+        } else {
+            return tokenProvider.createToken(authentication);
+        }
+    }
+
+
     public MyPageResponse getMemberInfo() {
         // SecurityContext에서 인증 정보 가져오기
         SecurityContext securityContext = SecurityContextHolder.getContext();

@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CertificationRepository extends JpaRepository<Certification, Long> {
-    List<Certification> findByMember(Member member);
+    Certification findByMember(Member memberNo);
+    void deleteByMember(Long member);
 }

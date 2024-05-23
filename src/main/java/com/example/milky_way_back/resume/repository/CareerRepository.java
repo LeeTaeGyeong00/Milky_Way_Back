@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CareerRepository extends JpaRepository<Career, Integer> {
-    List<Career> findByMember(Member member);
+    Career findByMember(Member memberNo);
+    void deleteByMember(Long member);
 }

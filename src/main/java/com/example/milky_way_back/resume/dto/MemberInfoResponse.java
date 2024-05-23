@@ -3,21 +3,28 @@ package com.example.milky_way_back.resume.dto;
 import com.example.milky_way_back.resume.entity.BasicInfo;
 import com.example.milky_way_back.resume.entity.Career;
 import com.example.milky_way_back.resume.entity.Certification;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
+@Builder
 public class MemberInfoResponse {
-    private List<BasicInfo> basicInfos;
-    private List<Career> careers;
-    private List<Certification> certifications;
+    private String studentLocate;
+    private String studentMajor;
+    private String studentOneLineShow;
 
-    public MemberInfoResponse(List<BasicInfo> basicInfos, List<Career> careers, List<Certification> certifications) {
-        this.basicInfos = basicInfos;
-        this.careers = careers;
-        this.certifications = certifications;
-    }
+    // 경력
+    private String carName;
+    private LocalDateTime carStartDay;
+    private LocalDateTime carEndDay;
+
+    // 자격증
+    private String certName;
+    private LocalDateTime certDate;
+
 }

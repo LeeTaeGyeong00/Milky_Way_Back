@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RequiredArgsConstructor
 @RestController
 public class MemberController {
@@ -34,8 +36,14 @@ public class MemberController {
 
     // 리프레시 토큰
     @PostMapping("/reissue")
-    public ResponseEntity<TokenDto> reissue(@RequestBody TokenRequestDto tokenRequestDto) {
-        return ResponseEntity.ok(memberService.reissue(tokenRequestDto));
+    public ResponseEntity<TokenDto> reissue(HttpServletRequest request) {
+        return ResponseEntity.ok(memberService.reissue(request));
+    }
+
+    // 로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
+        return memberService.logout(request);
     }
 
 }
