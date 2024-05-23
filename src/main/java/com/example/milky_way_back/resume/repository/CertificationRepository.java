@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface CertificationRepository extends JpaRepository<Certification, Long> {
     Certification findByMember(Member memberNo);
-    void deleteByMember(Long member);
+    void deleteByMember(Member member);
 }

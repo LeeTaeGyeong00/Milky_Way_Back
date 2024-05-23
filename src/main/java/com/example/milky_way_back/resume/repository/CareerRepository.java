@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface CareerRepository extends JpaRepository<Career, Integer> {
     Career findByMember(Member memberNo);
-    void deleteByMember(Long member);
+    void deleteByMember(Member member);
 }

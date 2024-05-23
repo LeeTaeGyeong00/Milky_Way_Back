@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -85,6 +86,7 @@ public class StudentResumeService {
     }
 
     // 기본 정보 수정 시 기존 내용 삭제
+    @Transactional
     public void modifyBasicInfo(HttpServletRequest request) {
 
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
@@ -93,10 +95,11 @@ public class StudentResumeService {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RuntimeException("회원을 찾을 수 없음"));
 
-        basicInfoRepository.deleteByMember(member.getMemberNo());
+        basicInfoRepository.deleteByMember(member);
     }
 
     // 경력, 자격증 수정 시 기존 내용 삭제
+    @Transactional
     public void modifyCareerAndCertification(HttpServletRequest request) {
 
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
@@ -105,8 +108,8 @@ public class StudentResumeService {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RuntimeException("회원을 찾을 수 없음"));
 
-        careerRepository.deleteByMember(member.getMemberNo());
-        certificationRepository.deleteByMember(member.getMemberNo());
+        careerRepository.deleteByMember(member);
+        certificationRepository.deleteByMember(member);
     }
 
     // 기본 정보 값 가져오기
