@@ -91,6 +91,7 @@ public class MemberService {
         return tokenDto;
     }
 
+    // 로그아웃
     @Transactional
     public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
 
@@ -98,7 +99,8 @@ public class MemberService {
 
         String memberId = authentication.getName();
 
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new UsernameNotFoundException("회원 정보가 없습니다."));
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new UsernameNotFoundException("회원 정보가 없습니다."));
 
         refreshTokenRepository.deleteByMember(member);
 
@@ -119,10 +121,12 @@ public class MemberService {
 
         boolean refreshTokenValid = tokenProvider.validateToken(refreshToken.getAuthRefreshToken());
 
+        // 리프레시 토큰이 만료가 안 됐을 경우
         if(refreshTokenValid) {
             return tokenProvider.createAccessToken(authentication);
-        } else {
+        } else { // 리프레시 토큰도 만료됐을 경우
             return TokenDto.builder()
+                    .grantType("Bearer")
                     .refreshToken(refreshToken.getAuthRefreshToken())
                     .accessToken(request.getHeader("Authorization"))
                     .build();
