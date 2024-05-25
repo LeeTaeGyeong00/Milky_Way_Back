@@ -8,7 +8,6 @@ import com.example.milky_way_back.member.Jwt.TokenProvider;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,15 +15,15 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -94,41 +93,47 @@ public class MemberService {
 
     // 로그아웃
     @Transactional
-    public ResponseEntity<StatusResponse> logout() {
+    public ResponseEntity<StatusResponse> logout(HttpServletRequest request) {
 
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+
+        String memberId = authentication.getName();
+
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new UsernameNotFoundException("회원 정보가 없습니다."));
+
+        refreshTokenRepository.deleteByMember(member);
 
         return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "로그아웃 완료"));
     }
 
-    // 토큰 재발급
+    // 리프레시 토큰 확인 후 재발급 관련
     @Transactional
-    public TokenDto reissue(TokenDto tokenRequestDto) {
+    public TokenDto reissue(HttpServletRequest request) {
 
-        if(!tokenProvider.validateToken(tokenRequestDto.getAccessToken())) {
-            throw new RuntimeException("AccessToken이 유효하지 않습니다.");
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+
+        String memberId = authentication.getName();
+
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new UsernameNotFoundException("회원 정보가 없습니다."));
+
+        RefreshToken refreshToken = refreshTokenRepository.findByMember(member).orElseThrow();
+
+        boolean refreshTokenValid = tokenProvider.validateToken(refreshToken.getAuthRefreshToken());
+
+        // 리프레시 토큰이 만료가 안 됐을 경우
+        if(refreshTokenValid) {
+            return tokenProvider.createAccessToken(authentication);
+        } else { // 리프레시 토큰도 만료됐을 경우
+            return TokenDto.builder()
+                    .grantType("Bearer")
+                    .refreshToken(refreshToken.getAuthRefreshToken())
+                    .accessToken(request.getHeader("Authorization"))
+                    .build();
         }
-
-        Authentication authentication = tokenProvider.getAuthentication(tokenRequestDto.getAccessToken());
-
-        Member member = memberRepository.findByMemberId(authentication.getName()).get();
-
-        RefreshToken refreshToken = refreshTokenRepository.findByMember(member.getMemberNo()).orElseThrow();
-
-        TokenDto tokenDto = tokenProvider.createToken(authentication);
-
-        TokenDto tokenRequestAndResponseDto =
-                TokenDto.builder()
-                .accessToken(tokenDto.getAccessToken())
-                        .memberNo(member.getMemberNo())
-                        .memberName(member.getMemberName())
-                .build(); // 클라이언트 어세스 토큰 재발급
-
-        RefreshToken newRefreshToken = refreshToken.updateToken(tokenDto.getRefreshToken()); // 리프레시 재설정
-
-        refreshTokenRepository.save(newRefreshToken);
-
-        return tokenRequestAndResponseDto; // 클라이언트측에는 어세스 토큰만 전달
     }
+
+
     public MyPageResponse getMemberInfo() {
         // SecurityContext에서 인증 정보 가져오기
         SecurityContext securityContext = SecurityContextHolder.getContext();
