@@ -11,13 +11,11 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
-
     private final TokenProvider tokenProvider;
 
     @Override
@@ -26,21 +24,21 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         // jwt 헤더 토큰 추출
         String token = getJwtToken((HttpServletRequest) servletRequest);
 
-        if (token != null && tokenProvider.validateToken(token)) {
+        if(token != null && tokenProvider.validateToken(token)) {
             Authentication authentication = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication); // 객체 저장
         }
-
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
-    // 헤더에서 토큰 가져오기
     private String getJwtToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
 
-            return bearerToken.replaceFirst("Bearer ", "");
+        String bearerToken = request.getHeader("Authorization");
+
+        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
         }
-        return null; // "Authorization" 헤더가 없거나 형식이 맞지 않는 경우
+
+        return null;
     }
 }
