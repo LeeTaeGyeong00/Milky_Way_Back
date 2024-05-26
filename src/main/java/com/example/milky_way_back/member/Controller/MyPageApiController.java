@@ -2,6 +2,7 @@ package com.example.milky_way_back.member.Controller;
 
 import com.example.milky_way_back.member.Dto.MyPageRequest;
 import com.example.milky_way_back.member.Dto.MyPageResponse;
+import com.example.milky_way_back.member.Dto.TokenDto;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Jwt.JwtAuthenticationFilter;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
@@ -13,6 +14,7 @@ import com.example.milky_way_back.article.service.ApplyService;
 import com.example.milky_way_back.article.service.ArticleService;
 import com.example.milky_way_back.member.Service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -110,12 +112,14 @@ public class MyPageApiController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> updateMemberInfo(@RequestBody MyPageRequest myPageRequest) {
-        boolean updated = memberService.updateMemberInfo(myPageRequest);
-        if (updated) {
-            return ResponseEntity.ok("Member information updated successfully");
+    public ResponseEntity<?> updateMemberInfo(@RequestBody MyPageRequest myPageRequest) {
+        TokenDto updatedTokenDto = memberService.updateMemberInfo(myPageRequest);
+
+        if (updatedTokenDto != null) {
+            return ResponseEntity.ok(updatedTokenDto);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Member not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Member not found or no information was updated.");
         }
     }
 

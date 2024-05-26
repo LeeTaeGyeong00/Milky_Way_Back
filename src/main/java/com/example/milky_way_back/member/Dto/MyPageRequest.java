@@ -13,6 +13,7 @@ import lombok.Setter;
 public class MyPageRequest {
     private Long memberNo;
     private String memberId;
+    private String newMemberId;
     private String memberPassword;
     private String memberName;
     private String memberPhoneNum;

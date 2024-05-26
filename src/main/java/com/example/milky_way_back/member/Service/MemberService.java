@@ -5,9 +5,11 @@ import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Entity.RefreshToken;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
+import com.example.milky_way_back.member.Jwt.UserDetailService;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +17,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,6 +38,9 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    private UserDetailsService userDetailService;
 
     // 회원가입
     public ResponseEntity<StatusResponse> signup(SignupRequest request) {
@@ -161,37 +168,90 @@ public class MemberService {
     }
 
     @Transactional
-    public boolean updateMemberInfo(MyPageRequest myPageRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentMemberId = authentication.getName();
-        System.out.println(myPageRequest.getMemberId());
-        System.out.println(currentMemberId);
-        // Check if the current user's memberId matches the provided memberId
-        if (!currentMemberId.equals(myPageRequest.getMemberId())) {
-            throw new UnauthorizedAccessException("You are not authorized to update this user's information");
-        }
+    public TokenDto  updateMemberInfo(MyPageRequest myPageRequest) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentMemberId = authentication.getName();
+//        System.out.println(myPageRequest.getMemberId());
+//        System.out.println(currentMemberId);
+//        // Check if the current user's memberId matches the provided memberId
+//        if (!currentMemberId.equals(myPageRequest.getMemberId())) {
+//            throw new UnauthorizedAccessException("You are not authorized to update this user's information");
+//        }
+        // SecurityContext에서 인증 정보 가져오기
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = securityContext.getAuthentication();
 
-        Optional<Member> optionalMember = memberRepository.findByMemberId(currentMemberId);
+        // 인증 정보에서 회원 ID 가져오기
+        String memberId = authentication.getName();
+
+        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
+            boolean isUpdated = false;
             // Update only if the field is not null
+            // Handle memberId change
+            // Handle memberId change
+//            if (myPageRequest.getNewMemberId() != null && !myPageRequest.getNewMemberId().equals(memberId)) {
+//                // Check if new memberId is already in use
+//                if (memberRepository.findByMemberId(myPageRequest.getNewMemberId()).isPresent()) {
+//                    throw new IllegalArgumentException("The new memberId is already in use");
+//                }
+//                member.setMemberId(myPageRequest.getNewMemberId());
+//                isUpdated = true;
+//                //리팩토링 할때 duplicationIdCheck 이부분을 쓰기위한 IdRequest 생성자 쓸수있는지 물어보기
+//            }
+//            // Check if the new memberId is different from the current memberId
+//            if (myPageRequest.getNewMemberId() != null && !myPageRequest.getNewMemberId().equals(memberId)) {
+//                ResponseEntity<StatusResponse> response = duplicationIdCheck(new IdRequest(myPageRequest.getNewMemberId()));
+//                if (response.getStatusCode() == HttpStatus.OK) {
+//                    member.setMemberId(myPageRequest.getNewMemberId());
+//                    isUpdated = true;
+//                } else {
+//                    throw new IllegalArgumentException("The new memberId is already in use");
+//                }
+//            }
+
             if (myPageRequest.getMemberPassword() != null) {
                 String encodedPassword = passwordEncoder.encode(myPageRequest.getMemberPassword());
                 member.setMemberPassword(encodedPassword);
+                isUpdated = true;
             }
             if (myPageRequest.getMemberName() != null) {
                 member.setMemberName(myPageRequest.getMemberName());
+                isUpdated = true;
             }
             if (myPageRequest.getMemberPhoneNum() != null) {
                 member.setMemberPhoneNum(myPageRequest.getMemberPhoneNum());
+                isUpdated = true;
             }
             if (myPageRequest.getMemberEmail() != null) {
                 member.setMemberEmail(myPageRequest.getMemberEmail());
+                isUpdated = true;
             }
             member.setLastModifiedDate(LocalDateTime.now());
             memberRepository.save(member);
-            return true;
+
+            // Update authentication token if any information has been changed
+            if (isUpdated) {
+                return updateAuthenticationToken(member.getMemberId());
+            }
         }
-        return false; // Member not found
+        return null; // No update was made or member not found
+    }
+    private TokenDto updateAuthenticationToken(String newMemberId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = userDetailService.loadUserByUsername(newMemberId);
+        UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+                userDetails, authentication.getCredentials(), userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
+
+        // Generate new tokens
+        TokenDto newTokenDto = tokenProvider.createToken(newAuth);
+
+        // Log the new access token
+        System.out.println("New JWT Access Token: " + newTokenDto.getAccessToken());
+
+        // Return the new tokens
+        return newTokenDto;
     }
 }
