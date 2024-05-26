@@ -1,6 +1,8 @@
 package com.example.milky_way_back.member.Jwt;
 
 import com.example.milky_way_back.member.Dto.TokenDto;
+import com.example.milky_way_back.member.Entity.Member;
+import com.example.milky_way_back.member.Repository.MemberRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -26,10 +28,12 @@ import java.util.stream.Collectors;
 public class TokenProvider {
 
     private final Key secretKey;
+    private final MemberRepository memberRepository;
 
-    public TokenProvider(@Value("${jwt.secret.key}") String key) {
+    public TokenProvider(@Value("${jwt.secret.key}") String key, MemberRepository memberRepository) {
         byte[] keyBytes = Decoders.BASE64.decode(key);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        this.memberRepository = memberRepository;
     }
 
     // 유저 정보 가지고 refresh, access 토큰 생성
@@ -40,6 +44,8 @@ public class TokenProvider {
                 .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime(); // 현재 시간
+
+        Member member = memberRepository.findByMemberId(authentication.getName()).orElseThrow();
 
         Date accessTokenExpire = new Date(now + 1800 * 1000); // 30분
         Date refreshTokenExpire = new Date(now + 86400000); // 1일
@@ -64,6 +70,7 @@ public class TokenProvider {
                 .grantType("Bearer")
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .memberName(member.getMemberName())
                 .build();
     }
 
