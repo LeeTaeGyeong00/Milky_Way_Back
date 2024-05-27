@@ -2,6 +2,7 @@ package com.example.milky_way_back.article.service;
 
 import com.example.milky_way_back.article.DTO.MemberDTO;
 import com.example.milky_way_back.article.DTO.ArticleDTO;
+import com.example.milky_way_back.article.entity.Article;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.ApplyRequest;
@@ -89,10 +90,16 @@ public class ApplyService {
                 myPageApplyResponse.setApplyDate(apply.getApplyDate());
                 myPageApplyResponse.setApplyResult(apply.getApplyResult());
 
+// Apply의 Article 정보를 가져옴
+                Article article = articleRepository.findById(apply.getArticle().getArticle_no())
+                        .orElseThrow(() -> new ArticleNotFoundException("Article not found with ID: " + apply.getArticle().getArticle_no()));
+
                 // Convert Article entity to MyPageArticleDTO
                 ArticleDTO articleDTO = new ArticleDTO();
-                articleDTO.setArticleNo(apply.getArticle().getArticle_no());
-                articleDTO.setTitle(apply.getArticle().getTitle());
+                articleDTO.setArticleNo(article.getArticle_no());
+                articleDTO.setTitle(article.getTitle());
+                articleDTO.setConMethod(article.getConMethod());
+                articleDTO.setConInfo(article.getConInfo());
 
                 // Convert Member entity to ApplyMemberDTO
                 MemberDTO memberDTO = new MemberDTO();
