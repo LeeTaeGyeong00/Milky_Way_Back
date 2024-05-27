@@ -1,6 +1,11 @@
 package com.example.milky_way_back.member.Service;
 
+import com.example.milky_way_back.article.DTO.response.MyPageArticleResponse;
+import com.example.milky_way_back.article.entity.Article;
+import com.example.milky_way_back.article.entity.Dibs;
+import com.example.milky_way_back.article.exception.MemberNotFoundException;
 import com.example.milky_way_back.article.exception.UnauthorizedAccessException;
+import com.example.milky_way_back.article.repository.DibsRepository;
 import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Entity.RefreshToken;
@@ -26,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,6 +45,7 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final DibsRepository dibsRepository;
 
     @Autowired
     private UserDetailsService userDetailService;
@@ -253,5 +261,37 @@ public class MemberService {
 
         // Return the new tokens
         return newTokenDto;
+    }
+    public List<MyPageArticleResponse> getLikedArticlesByMemberId(String memberId) {
+        // 회원 ID로 회원 정보 조회
+        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+        if (optionalMember.isEmpty()) {
+            throw new MemberNotFoundException("Member not found with ID: " + memberId);
+        }
+        Member member = optionalMember.get();
+
+        // 회원이 좋아요를 누른 게시물 목록 조회
+        List<Dibs> dibsList = dibsRepository.findByMemberNo(member);
+        List<MyPageArticleResponse> likedArticles = new ArrayList<>();
+
+        for (Dibs dibs : dibsList) {
+            Article article = dibs.getArticleNo();
+
+            MyPageArticleResponse response = new MyPageArticleResponse();
+            response.setCardArticle_no(article.getArticle_no());
+            response.setCardArticleType(article.getArticleType());
+            response.setCardTitle(article.getTitle());
+            response.setCardFindMentor(article.isFindMentor());
+            response.setCardRecruit(article.getRecruit());
+            response.setCardApply(article.getApply());
+            response.setCardApplyNow(article.getApplyNow());
+            response.setCardLikes(article.getLikes());
+            response.setCardEndDay(article.getEndDay());
+            response.setCardStartDay(article.getStartDay());
+
+            likedArticles.add(response);
+        }
+
+        return likedArticles;
     }
 }

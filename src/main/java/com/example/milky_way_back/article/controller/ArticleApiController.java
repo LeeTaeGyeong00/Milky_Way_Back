@@ -1,6 +1,9 @@
 package com.example.milky_way_back.article.controller;
 
+import com.example.milky_way_back.article.DTO.response.LikeResponse;
+import com.example.milky_way_back.article.exception.DuplicateLikeException;
 import com.example.milky_way_back.article.exception.MemberNotFoundException;
+import com.example.milky_way_back.article.repository.DibsRepository;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.AddArticle;
 import com.example.milky_way_back.article.DTO.response.ArticleListView;
@@ -16,7 +19,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +34,7 @@ import java.util.stream.Collectors;
 public class ArticleApiController {
     private final ArticleService articleService;
     private final MemberRepository memberRepository;
+
 @PostMapping("/posts/write")
 public ResponseEntity<Article> addBoard(@AuthenticationPrincipal UserDetails userDetails,
                                         @RequestBody AddArticle addArticle,
@@ -117,4 +123,24 @@ public ResponseEntity<Article> addBoard(@AuthenticationPrincipal UserDetails use
         }
         return null;
     }
+
+
+    @PostMapping("/posts/likes/{id}")
+    public ResponseEntity<LikeResponse> likeArticle(@PathVariable("id") Long id) {
+        try {
+            // 현재 인증된 사용자 정보 가져오기
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String memberNo = authentication.getName();
+
+            LikeResponse response = articleService.likeArticle(id, memberNo);
+            return ResponseEntity.ok(response);
+        } catch (MemberNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (DuplicateLikeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 }

@@ -1,6 +1,12 @@
 package com.example.milky_way_back.article.service;
 
+import com.example.milky_way_back.article.DTO.request.LikeRequest;
 import com.example.milky_way_back.article.DTO.response.ArticleViewResponse;
+import com.example.milky_way_back.article.DTO.response.LikeResponse;
+import com.example.milky_way_back.article.entity.Dibs;
+import com.example.milky_way_back.article.exception.ArticleNotFoundException;
+import com.example.milky_way_back.article.exception.DuplicateLikeException;
+import com.example.milky_way_back.article.repository.DibsRepository;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.AddArticle;
@@ -10,6 +16,7 @@ import com.example.milky_way_back.article.entity.Article;
 import com.example.milky_way_back.article.repository.ArticleRepository;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -31,6 +38,7 @@ public class ArticleService {
     private final TokenProvider tokenProvider;
     private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
+    private final DibsRepository dibsRepository;
 
     public Article save(AddArticle request) {
         // SecurityContext에서 인증 정보 가져오기
@@ -153,5 +161,40 @@ public class ArticleService {
             // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
             throw new MemberNotFoundException("Member not found with ID: " + memberId);
         }
+    }
+    @Transactional
+    public LikeResponse likeArticle(Long articleId,  String memberId) {
+        // 회원 ID로 회원 정보 조회
+        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+        if (optionalMember.isEmpty()) {
+            throw new MemberNotFoundException("Member not found with ID: " + memberId);
+        }
+
+        Member member = optionalMember.get();
+
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new ArticleNotFoundException("Article not found with ID: " + articleId));
+
+        Optional<Dibs> optionalDibs = dibsRepository.findByMemberNoAndArticleNo(member, article);
+
+        if (optionalDibs.isPresent()) {
+            throw new DuplicateLikeException("Member has already liked this article.");
+        }
+
+        // 좋아요 수 증가
+        article.setLikes(article.getLikes() + 1);
+        articleRepository.save(article);
+
+        // Dibs 테이블에 추가
+        Dibs dibs = Dibs.builder()
+                .memberNo(member)
+                .articleNo(article)
+                .build();
+        dibsRepository.save(dibs);
+
+        LikeResponse response = new LikeResponse();
+        response.setArticleNo(articleId);
+        response.setLikeCount(article.getLikes());
+        return response;
     }
 }

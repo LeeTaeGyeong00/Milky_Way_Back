@@ -132,4 +132,30 @@ public class MyPageApiController {
         }
         return null;
     }
+
+    @GetMapping("/dibsinfo")
+    public ResponseEntity<?> getMyDibsInfo(@AuthenticationPrincipal UserDetails userDetails
+            ,HttpServletRequest request
+    ) {
+        if (userDetails == null) {
+            // 사용자가 인증되지 않은 경우
+            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
+        }
+
+        // Jwt 토큰에서 회원 정보를 가져옴
+        String memberId = userDetails.getUsername();
+        if (memberId == null) {
+            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
+        }
+
+        try {
+            // 아티클 정보 조회
+            List<MyPageArticleResponse> articles = memberService.getLikedArticlesByMemberId(memberId);
+            return ResponseEntity.ok(articles);
+        } catch (Exception e) {
+            // 예외 처리
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error occurred while fetching my page data");
+        }
+    }
 }
