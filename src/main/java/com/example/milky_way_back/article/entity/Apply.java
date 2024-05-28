@@ -21,11 +21,11 @@ public class Apply {
     @Column(name="apply_no", updatable = false)
     private Long apply_no;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "article_no")
     private Article article;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "member_no", nullable = false)
     private Member memberId;
 

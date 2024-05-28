@@ -3,6 +3,7 @@ package com.example.milky_way_back.article.service;
 import com.example.milky_way_back.article.DTO.MemberDTO;
 import com.example.milky_way_back.article.DTO.ArticleDTO;
 import com.example.milky_way_back.article.entity.Article;
+import com.example.milky_way_back.article.exception.DuplicateApplyException;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.ApplyRequest;
@@ -49,6 +50,11 @@ public class ApplyService {
 
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
+            System.out.println(member);
+            // 회원과 게시글 번호를 기반으로 기존 지원 내역 확인
+            if (applyRepository.findByMemberAndArticleNo(member, articleNo).isPresent()) {
+                throw new DuplicateApplyException("Member has already applied to this article.");
+            }
             // AddArticle에 회원 정보 설정
             Apply apply = Apply.builder()
                     .article(articleRepository.findById(articleNo).orElseThrow(() -> new ArticleNotFoundException("Article not found with ID: " + articleNo)))
