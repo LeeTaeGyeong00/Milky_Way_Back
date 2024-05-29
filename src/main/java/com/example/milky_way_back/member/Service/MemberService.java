@@ -159,6 +159,7 @@ public class MemberService {
 
         // 회원 ID로 회원 정보 조회
         Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
             // 회원 정보를 MyPageResponse DTO로 매핑

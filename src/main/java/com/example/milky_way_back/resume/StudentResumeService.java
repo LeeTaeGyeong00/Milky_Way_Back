@@ -43,9 +43,10 @@ public class StudentResumeService {
         Member member = memberRepository.findByMemberId(memberId).orElseThrow();
 
         BasicInfo basicInfo = BasicInfo.builder()
-                .studentresumeMajor(basicInfoReqeustDto.getStudentMajor())
+                .studentResumeMajor(basicInfoReqeustDto.getStudentMajor())
                 .studentResumeLocate(basicInfoReqeustDto.getStudentLocate())
                 .studentResumeOnelineshow(basicInfoReqeustDto.getStudentOneLineShow())
+                .studentResumeGrade(basicInfoReqeustDto.getStudentGrade())
                 .member(member)
                 .build();
 
@@ -123,10 +124,21 @@ public class StudentResumeService {
 
         BasicInfo basicInfos = basicInfoRepository.findByMember(member);
 
+        if(basicInfos == null) {
+            BasicInfoResponse basicInfoResponseNull = BasicInfoResponse.builder()
+                    .studentGrade(null)
+                    .studentLocate(null)
+                    .studentMajor(null)
+                    .studentOneLineShow(null)
+                    .build();
+
+            return ResponseEntity.status(HttpStatus.OK).body(basicInfoResponseNull);
+        }
+
         BasicInfoResponse basicInfoReqeustDto = BasicInfoResponse.builder()
                 .studentGrade(basicInfos.getStudentResumeGrade())
                 .studentLocate(basicInfos.getStudentResumeLocate())
-                .studentMajor(basicInfos.getStudentresumeMajor())
+                .studentMajor(basicInfos.getStudentResumeMajor())
                 .studentOneLineShow(basicInfos.getStudentResumeOnelineshow())
                 .build();
 
@@ -145,6 +157,19 @@ public class StudentResumeService {
 
         Career careers = careerRepository.findByMember(member);
         Certification certifications = certificationRepository.findByMember(member);
+
+        if(careers == null || certifications == null) {
+            CareerAndCertificationResponse careerAndCertificationNull = CareerAndCertificationResponse.builder()
+                    .carName("비어있습니다.")
+                    .carStartDay(null)
+                    .carEndDay(null)
+
+                    .certName("비어있습니다.")
+                    .certDate(null)
+                    .build();
+
+            return ResponseEntity.status(HttpStatus.OK).body(careerAndCertificationNull);
+        }
 
         CareerAndCertificationResponse careerAndCertificationDto = CareerAndCertificationResponse.builder()
                 .carName(careers.getCarName())

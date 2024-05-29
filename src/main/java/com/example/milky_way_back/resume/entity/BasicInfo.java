@@ -19,10 +19,10 @@ public class BasicInfo {
     private Long studentResumeNo;
 
     @Column(name = "studentresume_grade")
-    private int studentResumeGrade;
+    private Integer studentResumeGrade;
 
     @Column(name = "studentresume_major")
-    private String studentresumeMajor;
+    private String studentResumeMajor;
 
     @Column(name = "studentresume_onelineshow")
     private String studentResumeOnelineshow;

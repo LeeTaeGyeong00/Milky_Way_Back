@@ -32,24 +32,30 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @RestController //http 응답으로 객체 데이터를 json 형태로 변환
 public class MyPageApiController {
+
     private final MemberService memberService;
     private final ArticleService articleService;
     private final ApplyService applyService;
     private final TokenProvider tokenProvider;
+
     @GetMapping("/info")
     public ResponseEntity<?> getMyPageInfo(@AuthenticationPrincipal UserDetails userDetails
                                            ,HttpServletRequest request
-    ) {
+    )
+
+    {
         if (userDetails == null) {
             // 사용자가 인증되지 않은 경우
             throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
         }
+
         // Jwt 토큰에서 회원 정보를 가져옴
         String accessToken = extractTokenFromRequest(request);
         if (accessToken == null) {
             throw new UnauthorizedException("토큰이 유효하지 않습니다.");
         }
         try {
+
             // 회원 정보 조회
             MyPageResponse memberInfo = memberService.getMemberInfo();
 

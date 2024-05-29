@@ -7,5 +7,6 @@ public class BasicInfoReqeustDto {
     private String studentLocate;
     private String studentMajor;
     private String studentOneLineShow;
+    private Integer studentGrade;
 
 }

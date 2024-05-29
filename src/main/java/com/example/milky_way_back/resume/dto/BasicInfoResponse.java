@@ -11,5 +11,5 @@ public class BasicInfoResponse {
     private String studentLocate;
     private String studentMajor;
     private String studentOneLineShow;
-    private int studentGrade;
+    private Integer studentGrade;
 }
