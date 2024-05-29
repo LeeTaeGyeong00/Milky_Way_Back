@@ -27,7 +27,7 @@ public class Article {
     @Column(name="article_no", updatable = false)
     private Long article_no;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "member_no", nullable = false)
     private Member memberId;
 

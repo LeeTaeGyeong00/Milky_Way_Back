@@ -38,33 +38,40 @@ public class MyPageApiController {
     private final ApplyService applyService;
     private final TokenProvider tokenProvider;
 
+//    @GetMapping("/info")
+//    public ResponseEntity<?> getMyPageInfo(@AuthenticationPrincipal UserDetails userDetails
+//                                           ,HttpServletRequest request
+//    )
+//
+//    {
+//        if (userDetails == null) {
+//            // 사용자가 인증되지 않은 경우
+//            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
+//        }
+//
+//        // Jwt 토큰에서 회원 정보를 가져옴
+//        String accessToken = extractTokenFromRequest(request);
+//        if (accessToken == null) {
+//            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
+//        }
+//        try {
+//
+//            // 회원 정보 조회
+//            MyPageResponse memberInfo = memberService.getMemberInfo();
+//
+//            return ResponseEntity.ok(memberInfo);
+//        } catch (Exception e) {
+//            // 예외 처리
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Error occurred while fetching my page data");
+//        }
+//    }
     @GetMapping("/info")
-    public ResponseEntity<?> getMyPageInfo(@AuthenticationPrincipal UserDetails userDetails
+    public ResponseEntity<?> getMyPageInfo(MyPageResponse myPageResponse
                                            ,HttpServletRequest request
-    )
+    ){
 
-    {
-        if (userDetails == null) {
-            // 사용자가 인증되지 않은 경우
-            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
-        }
-
-        // Jwt 토큰에서 회원 정보를 가져옴
-        String accessToken = extractTokenFromRequest(request);
-        if (accessToken == null) {
-            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
-        }
-        try {
-
-            // 회원 정보 조회
-            MyPageResponse memberInfo = memberService.getMemberInfo();
-
-            return ResponseEntity.ok(memberInfo);
-        } catch (Exception e) {
-            // 예외 처리
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error occurred while fetching my page data");
-        }
+            return memberService.getMemberInfo(myPageResponse,request);
     }
 
 

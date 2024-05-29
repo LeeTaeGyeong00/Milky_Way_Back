@@ -29,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -149,32 +150,52 @@ public class MemberService {
     }
 
 
-    public MyPageResponse getMemberInfo() {
-        // SecurityContext에서 인증 정보 가져오기
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
+//    public MyPageResponse getMemberInfo(HttpServletRequest request) {
+//        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+//        String memberId = authentication.getName();
+//
+//        // 인증 정보에서 회원 ID 가져오기
+//        String memberId = authentication.getName();
+//
+//        // 회원 ID로 회원 정보 조회
+//        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+//
+//        if (optionalMember.isPresent()) {
+//            Member member = optionalMember.get();
+//            // 회원 정보를 MyPageResponse DTO로 매핑
+//            MyPageResponse myPageResponse = new MyPageResponse();
+//            myPageResponse.setMemberId(member.getMemberId());
+//            myPageResponse.setMemberName(member.getMemberName());
+//            myPageResponse.setMemberPhoneNum(member.getMemberPhoneNum());
+//            myPageResponse.setMemberEmail(member.getMemberEmail());
+//            return myPageResponse;
+//        } else {
+//            // 회원 정보가 없을 경우 처리
+//            // 예: throw new EntityNotFoundException("회원 정보를 찾을 수 없습니다.");
+//            return null;
+//        }
+//    }
+public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageResponse, HttpServletRequest request) {
+    // 요청 헤더에서 인증 정보 가져오기
+    Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+    String memberId = authentication.getName();
 
-        // 인증 정보에서 회원 ID 가져오기
-        String memberId = authentication.getName();
+    // 회원 ID로 회원 정보 조회
+    Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
 
-        // 회원 ID로 회원 정보 조회
-        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
-
-        if (optionalMember.isPresent()) {
-            Member member = optionalMember.get();
-            // 회원 정보를 MyPageResponse DTO로 매핑
-            MyPageResponse myPageResponse = new MyPageResponse();
-            myPageResponse.setMemberId(member.getMemberId());
-            myPageResponse.setMemberName(member.getMemberName());
-            myPageResponse.setMemberPhoneNum(member.getMemberPhoneNum());
-            myPageResponse.setMemberEmail(member.getMemberEmail());
-            return myPageResponse;
-        } else {
-            // 회원 정보가 없을 경우 처리
-            // 예: throw new EntityNotFoundException("회원 정보를 찾을 수 없습니다.");
-            return null;
-        }
+    if (optionalMember.isPresent()) {
+        Member member = optionalMember.get();
+        // 회원 정보를 MyPageResponse DTO로 매핑
+        myPageResponse.setMemberId(member.getMemberId());
+        myPageResponse.setMemberName(member.getMemberName());
+        myPageResponse.setMemberPhoneNum(member.getMemberPhoneNum());
+        myPageResponse.setMemberEmail(member.getMemberEmail());
+        return ResponseEntity.ok(myPageResponse);
+    } else {
+        // 회원 정보가 없을 경우 예외 처리
+        throw new EntityNotFoundException("회원 정보를 찾을 수 없습니다.");
     }
+}
 
     @Transactional
     public TokenDto  updateMemberInfo(MyPageRequest myPageRequest) {
