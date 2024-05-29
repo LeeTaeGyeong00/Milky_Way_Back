@@ -37,6 +37,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 )
                 .cors()
                 .and()// cors config 적용
+                .logout().disable()
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
     }
     // 패스워드 암호화

@@ -124,6 +124,7 @@ public class StudentResumeService {
         BasicInfo basicInfos = basicInfoRepository.findByMember(member);
 
         BasicInfoResponse basicInfoReqeustDto = BasicInfoResponse.builder()
+                .studentGrade(basicInfos.getStudentResumeGrade())
                 .studentLocate(basicInfos.getStudentResumeLocate())
                 .studentMajor(basicInfos.getStudentresumeMajor())
                 .studentOneLineShow(basicInfos.getStudentResumeOnelineshow())
