@@ -25,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,11 +41,11 @@ public class ArticleService {
     private final MemberRepository memberRepository;
     private final DibsRepository dibsRepository;
 
-    public Article save(AddArticle request) {
-        // SecurityContext에서 인증 정보 가져오기
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-
+    public Article save(HttpServletRequest request, AddArticle addArticle) {
+//        // SecurityContext에서 인증 정보 가져오기
+//        SecurityContext securityContext = SecurityContextHolder.getContext();
+//        Authentication authentication = securityContext.getAuthentication();
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
         // 인증 정보에서 회원 ID 가져오기
         String memberId = authentication.getName();
         // 회원 ID로 회원 정보 조회
@@ -52,9 +53,9 @@ public class ArticleService {
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
             // AddArticle에 회원 정보 설정
-            request.setMemberId(memberId);
+            addArticle.setMemberId(memberId);
             // Article 엔티티로 변환
-            Article article = request.toEntity(member);
+            Article article = addArticle.toEntity(member);
             // 게시물 저장
             return articleRepository.save(article);
         } else {
