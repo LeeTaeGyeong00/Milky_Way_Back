@@ -1,11 +1,13 @@
 package com.example.milky_way_back.article.service;
 
 import com.example.milky_way_back.article.DTO.request.LikeRequest;
+import com.example.milky_way_back.article.DTO.response.ArticleListView;
 import com.example.milky_way_back.article.DTO.response.ArticleViewResponse;
 import com.example.milky_way_back.article.DTO.response.LikeResponse;
 import com.example.milky_way_back.article.entity.Dibs;
 import com.example.milky_way_back.article.exception.ArticleNotFoundException;
 import com.example.milky_way_back.article.exception.DuplicateLikeException;
+import com.example.milky_way_back.article.exception.UnauthorizedException;
 import com.example.milky_way_back.article.repository.DibsRepository;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
@@ -18,6 +20,7 @@ import com.example.milky_way_back.member.Jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -30,6 +33,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -65,11 +69,26 @@ public class ArticleService {
     }
 
     //게시글 조회
-    public Page<Article> findAll(Pageable pageable) {
-        return articleRepository.findAll(pageable);
+    public Page<ArticleListView> findAll(HttpServletRequest request, Pageable pageable) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
+
+        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+        if (optionalMember.isPresent()) {
+            Page<Article> articlePage = articleRepository.findAll(pageable);
+
+            List<ArticleListView> articles = articlePage.getContent()
+                    .stream()
+                    .map(ArticleListView::new)
+                    .collect(Collectors.toList());
+
+            return new PageImpl<>(articles, pageable, articlePage.getTotalElements());
+        } else {
+            throw new MemberNotFoundException("Member not found with ID: " + memberId);
+        }
     }
 
-//    public Article findById (long id) {
+//    public ArticleViewResponse findById(long id) {
 //        // SecurityContext에서 인증 정보 가져오기
 //        SecurityContext securityContext = SecurityContextHolder.getContext();
 //        Authentication authentication = securityContext.getAuthentication();
@@ -78,32 +97,30 @@ public class ArticleService {
 //        String memberId = authentication.getName();
 //        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
 //        if (optionalMember.isPresent()) {
-//            return articleRepository.findById(id)
+//            Article article = articleRepository.findById(id)
 //                    .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+//
+//            return new ArticleViewResponse(article);
 //        } else {
 //            // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
 //            throw new MemberNotFoundException("Member not found with ID: " + memberId);
 //        }
-//
 //    }
-    public ArticleViewResponse findById(long id) {
-        // SecurityContext에서 인증 정보 가져오기
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
+public ArticleViewResponse findById(HttpServletRequest request,long id) {
+    // SecurityContext에서 인증 정보 가져오기
+    Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+    String memberId = authentication.getName();
+    Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
+    if (optionalMember.isPresent()) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
 
-        // 인증 정보에서 회원 ID 가져오기
-        String memberId = authentication.getName();
-        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
-        if (optionalMember.isPresent()) {
-            Article article = articleRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
-
-            return new ArticleViewResponse(article);
-        } else {
-            // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
-            throw new MemberNotFoundException("Member not found with ID: " + memberId);
-        }
+        return new ArticleViewResponse(article);
+    } else {
+        // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
+        throw new MemberNotFoundException("Member not found with ID: " + memberId);
     }
+}
     public void delete(long id){
         articleRepository.deleteById(id);
     }
@@ -116,20 +133,32 @@ public class ArticleService {
 //        return article;
 //    } 수정 넣을건가요?
 // 게시글 업데이트
-    public Article updateRecruit(long id) {
+    //회원 검증후 적용
+//    public Article updateRecruit(long id) {
+//        Article article = articleRepository.findById(id)
+//                .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
+//
+//        article.setRecruit(false);
+//        return article;
+//    }
+    public Article updateRecruit(HttpServletRequest request, long id) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
+
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
 
-        article.setRecruit(false);
-        return article;
+        if (article.getMemberId().getMemberId().equals(memberId)) {
+            article.setRecruit(false);
+            return articleRepository.save(article);
+        } else {
+            throw new UnauthorizedException("You are not authorized to update this article");
+        }
     }
 
-    public List<MyPageArticleResponse> getArticlesByMemberId() {
+    public List<MyPageArticleResponse> getArticlesByMemberId(HttpServletRequest request) {
         // SecurityContext에서 인증 정보 가져오기
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-
-        // 인증 정보에서 회원 ID 가져오기
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
         String memberId = authentication.getName();
 
         // 회원 ID로 회원을 조회
@@ -164,7 +193,9 @@ public class ArticleService {
         }
     }
     @Transactional
-    public LikeResponse likeArticle(Long articleId,  String memberId) {
+    public LikeResponse likeArticle(HttpServletRequest request, Long articleId) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
         // 회원 ID로 회원 정보 조회
         Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
         if (optionalMember.isEmpty()) {

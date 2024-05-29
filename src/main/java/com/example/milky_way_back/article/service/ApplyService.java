@@ -1,17 +1,16 @@
 package com.example.milky_way_back.article.service;
 
+import com.example.milky_way_back.article.DTO.ChangeApplyResult;
 import com.example.milky_way_back.article.DTO.MemberDTO;
 import com.example.milky_way_back.article.DTO.ArticleDTO;
 import com.example.milky_way_back.article.entity.Article;
-import com.example.milky_way_back.article.exception.DuplicateApplyException;
+import com.example.milky_way_back.article.exception.*;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.request.ApplyRequest;
 import com.example.milky_way_back.article.DTO.response.ApplyResponse;
 import com.example.milky_way_back.article.DTO.response.MyPageApplyResponse;
 import com.example.milky_way_back.article.entity.Apply;
-import com.example.milky_way_back.article.exception.ArticleNotFoundException;
-import com.example.milky_way_back.article.exception.MemberNotFoundException;
 import com.example.milky_way_back.article.repository.ApplyRepository;
 import com.example.milky_way_back.article.repository.ArticleRepository;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
@@ -21,6 +20,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +39,9 @@ public class ApplyService {
 //    }
     @Transactional
     //회원 번호와 게시글 번호를 받아 지원 정보를 처리하는 메서드
-    public Apply apply(String accessToken, Long articleNo, ApplyRequest request) {
+    public Apply apply(HttpServletRequest request, Long articleNo, ApplyRequest applyRequest) {
         // SecurityContext에서 인증 정보 가져오기
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-        // 인증 정보에서 회원 ID 가져오기
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
         String memberId = authentication.getName();
         // 회원 ID로 회원 정보 조회
         Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
@@ -73,12 +71,8 @@ public class ApplyService {
         return applyRepository.findMemberNamesByArticleNo(article_no);
     }
 
-    public List<MyPageApplyResponse> getAppliesByMemberId() {
-        // SecurityContext에서 인증 정보 가져오기
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-
-        // 인증 정보에서 회원 ID 가져오기
+    public List<MyPageApplyResponse> getAppliesByMemberId(HttpServletRequest request) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
         String memberId = authentication.getName();
 
         // 회원 ID로 회원을 조회
@@ -123,6 +117,42 @@ public class ApplyService {
             // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
             throw new MemberNotFoundException("Member not found with ID: " + memberId);
         }
+    }
+
+    public String updateApplyResult(HttpServletRequest request, Long applyId, ChangeApplyResult requestBody) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
+
+        // 지원 정보 조회
+        Optional<Apply> optionalApply = applyRepository.findById(applyId);
+        if (!optionalApply.isPresent()) {
+            throw new ResourceNotFoundException("지원 정보를 찾을 수 없습니다.");
+        }
+
+        Apply apply = optionalApply.get();
+        Member author = apply.getArticle().getMemberId();
+
+        // 현재 로그인한 사용자와 게시판의 작성자가 일치하는지 확인
+        if (!author.getMemberId().equals(memberId)) {
+            throw new UnauthorizedException("작성자만 지원자의 합격을 결정할 수 있습니다.");
+        }
+
+        // 작성자와 일치하면, 작업 수행
+        String applyResult = requestBody.getApplyResult();
+
+        // apply 엔터티의 applyResult 필드를 직접 수정
+        apply.setApplyResult(applyResult);
+        applyRepository.save(apply);
+
+        // 만약 결과가 "합격"인 경우, Article 엔터티의 applyNow 필드를 1 증가
+        if ("합격".equals(applyResult)) {
+            Article article = apply.getArticle();
+            int currentApplyNow = article.getApplyNow();
+            article.setApplyNow(currentApplyNow + 1);
+            articleRepository.save(article);
+        }
+
+        return "applyResult updated successfully";
     }
 }
 

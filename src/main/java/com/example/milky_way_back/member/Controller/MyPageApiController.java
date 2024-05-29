@@ -76,22 +76,13 @@ public class MyPageApiController {
 
 
     @GetMapping("/applyinfo")
-    public ResponseEntity<?> getMyApplyInfo(@AuthenticationPrincipal UserDetails userDetails
-            ,HttpServletRequest request
+    public ResponseEntity<?> getMyApplyInfo(
+            HttpServletRequest request
     ) {
-        if (userDetails == null) {
-            // 사용자가 인증되지 않은 경우
-            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
-        }
-        // Jwt 토큰에서 회원 정보를 가져옴
-        String accessToken = extractTokenFromRequest(request);
-        if (accessToken == null) {
-            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
-        }
         try {
 
                 // 신청 정보 조회
-                List<MyPageApplyResponse> applies = applyService.getAppliesByMemberId();
+                List<MyPageApplyResponse> applies = applyService.getAppliesByMemberId(request);
 
             return ResponseEntity.ok(applies);
         } catch (Exception e) {
@@ -101,21 +92,12 @@ public class MyPageApiController {
         }
     }
     @GetMapping("/articleinfo")
-    public ResponseEntity<?> getMyArticleInfo(@AuthenticationPrincipal UserDetails userDetails
-            ,HttpServletRequest request
+    public ResponseEntity<?> getMyArticleInfo(
+            HttpServletRequest request
     ) {
-        if (userDetails == null) {
-            // 사용자가 인증되지 않은 경우
-            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
-        }
-        // Jwt 토큰에서 회원 정보를 가져옴
-        String accessToken = extractTokenFromRequest(request);
-        if (accessToken == null) {
-            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
-        }
         try {
             // 아티클 정보 조회
-            List<MyPageArticleResponse> articles = articleService.getArticlesByMemberId();
+            List<MyPageArticleResponse> articles = articleService.getArticlesByMemberId(request);
             return ResponseEntity.ok(articles);
         } catch (Exception e) {
             // 예외 처리
@@ -125,8 +107,8 @@ public class MyPageApiController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateMemberInfo(@RequestBody MyPageRequest myPageRequest) {
-        TokenDto updatedTokenDto = memberService.updateMemberInfo(myPageRequest);
+    public ResponseEntity<?> updateMemberInfo(HttpServletRequest request,@RequestBody MyPageRequest myPageRequest) {
+        TokenDto updatedTokenDto = memberService.updateMemberInfo(request,myPageRequest);
 
         if (updatedTokenDto != null) {
             return ResponseEntity.ok(updatedTokenDto);
@@ -147,23 +129,13 @@ public class MyPageApiController {
     }
 
     @GetMapping("/dibsinfo")
-    public ResponseEntity<?> getMyDibsInfo(@AuthenticationPrincipal UserDetails userDetails
-            ,HttpServletRequest request
+    public ResponseEntity<?> getMyDibsInfo(
+            @RequestBody MyPageArticleResponse myPageArticleResponse,
+            HttpServletRequest request
     ) {
-        if (userDetails == null) {
-            // 사용자가 인증되지 않은 경우
-            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
-        }
-
-        // Jwt 토큰에서 회원 정보를 가져옴
-        String memberId = userDetails.getUsername();
-        if (memberId == null) {
-            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
-        }
-
-        try {
+            try {
             // 아티클 정보 조회
-            List<MyPageArticleResponse> articles = memberService.getLikedArticlesByMemberId(memberId);
+            List<MyPageArticleResponse> articles = memberService.getLikedArticlesByMemberId(myPageArticleResponse, request);
             return ResponseEntity.ok(articles);
         } catch (Exception e) {
             // 예외 처리

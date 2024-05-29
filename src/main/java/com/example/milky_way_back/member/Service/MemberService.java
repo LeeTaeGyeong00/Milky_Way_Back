@@ -198,7 +198,7 @@ public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageRespons
 }
 
     @Transactional
-    public TokenDto  updateMemberInfo(MyPageRequest myPageRequest) {
+    public TokenDto  updateMemberInfo(HttpServletRequest request,MyPageRequest myPageRequest) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String currentMemberId = authentication.getName();
 //        System.out.println(myPageRequest.getMemberId());
@@ -218,28 +218,7 @@ public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageRespons
         if (optionalMember.isPresent()) {
             Member member = optionalMember.get();
             boolean isUpdated = false;
-            // Update only if the field is not null
-            // Handle memberId change
-            // Handle memberId change
-//            if (myPageRequest.getNewMemberId() != null && !myPageRequest.getNewMemberId().equals(memberId)) {
-//                // Check if new memberId is already in use
-//                if (memberRepository.findByMemberId(myPageRequest.getNewMemberId()).isPresent()) {
-//                    throw new IllegalArgumentException("The new memberId is already in use");
-//                }
-//                member.setMemberId(myPageRequest.getNewMemberId());
-//                isUpdated = true;
-//                //리팩토링 할때 duplicationIdCheck 이부분을 쓰기위한 IdRequest 생성자 쓸수있는지 물어보기
-//            }
-//            // Check if the new memberId is different from the current memberId
-//            if (myPageRequest.getNewMemberId() != null && !myPageRequest.getNewMemberId().equals(memberId)) {
-//                ResponseEntity<StatusResponse> response = duplicationIdCheck(new IdRequest(myPageRequest.getNewMemberId()));
-//                if (response.getStatusCode() == HttpStatus.OK) {
-//                    member.setMemberId(myPageRequest.getNewMemberId());
-//                    isUpdated = true;
-//                } else {
-//                    throw new IllegalArgumentException("The new memberId is already in use");
-//                }
-//            }
+
 
             if (myPageRequest.getMemberPassword() != null) {
                 String encodedPassword = passwordEncoder.encode(myPageRequest.getMemberPassword());
@@ -284,7 +263,9 @@ public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageRespons
         // Return the new tokens
         return newTokenDto;
     }
-    public List<MyPageArticleResponse> getLikedArticlesByMemberId(String memberId) {
+    public List<MyPageArticleResponse> getLikedArticlesByMemberId(MyPageArticleResponse myPageArticleResponse, HttpServletRequest request) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
         // 회원 ID로 회원 정보 조회
         Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
         if (optionalMember.isEmpty()) {
