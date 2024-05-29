@@ -130,12 +130,11 @@ public class MyPageApiController {
 
     @GetMapping("/dibsinfo")
     public ResponseEntity<?> getMyDibsInfo(
-            @RequestBody MyPageArticleResponse myPageArticleResponse,
             HttpServletRequest request
     ) {
             try {
             // 아티클 정보 조회
-            List<MyPageArticleResponse> articles = memberService.getLikedArticlesByMemberId(myPageArticleResponse, request);
+            List<MyPageArticleResponse> articles = memberService.getLikedArticlesByMemberId(request);
             return ResponseEntity.ok(articles);
         } catch (Exception e) {
             // 예외 처리

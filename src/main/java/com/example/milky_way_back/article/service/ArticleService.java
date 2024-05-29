@@ -107,19 +107,26 @@ public class ArticleService {
 //        }
 //    }
 public ArticleViewResponse findById(HttpServletRequest request,long id) {
-    // SecurityContext에서 인증 정보 가져오기
+    // 토큰에서 인증 정보 가져오기
     Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
     String memberId = authentication.getName();
-    Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
-    if (optionalMember.isPresent()) {
-        Article article = articleRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
 
-        return new ArticleViewResponse(article);
-    } else {
-        // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
-        throw new MemberNotFoundException("Member not found with ID: " + memberId);
-    }
+    // 회원 ID로 회원 정보 조회
+    Member member = memberRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberId));
+
+    // 게시물 조회
+    Article article = articleRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+
+    // 게시물 작성자와 요청한 사용자가 동일한지 확인
+    boolean isAuthor = article.getMemberId().getMemberNo().equals(member.getMemberNo());
+
+    // ArticleViewResponse 생성 및 isAuthor 설정
+    ArticleViewResponse response = new ArticleViewResponse(article);
+    response.setAuthor(isAuthor);
+
+    return response;
 }
     public void delete(long id){
         articleRepository.deleteById(id);

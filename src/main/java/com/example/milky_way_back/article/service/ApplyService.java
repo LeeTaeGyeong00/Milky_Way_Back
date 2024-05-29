@@ -67,9 +67,47 @@ public class ApplyService {
     }
 
 
-    public List<ApplyResponse> findMemberNamesByArticleNo(Long article_no) {
-        return applyRepository.findMemberNamesByArticleNo(article_no);
+    public List<ApplyResponse> findMemberNamesByArticleNo( HttpServletRequest request, Long articleNo) {
+        // 토큰에서 사용자 정보 추출
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
+
+        // 현재 사용자를 조회
+        Member currentUser = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberId));
+
+        // 게시물 조회
+        Article article = articleRepository.findById(articleNo)
+                .orElseThrow(() -> new IllegalArgumentException("Article not found with id: " + articleNo));
+
+        // 게시물 작성자와 현재 사용자 비교
+        boolean isAuthor = article.getMemberId().getMemberId().equals(memberId);
+
+        // 게시물에 지원했는지 확인
+        boolean hasApplied = applyRepository.findByArticleAndMemberId(article, currentUser).isPresent();
+
+        // 작성자도 아니고 지원자도 아닌 경우 접근 거부
+        if (!isAuthor && !hasApplied) {
+            throw new AccessDeniedException("You are not allowed to access this resource");
+        }
+
+        // 지원자 목록 조회
+        List<Apply> applies = applyRepository.findByArticle(article);
+        List<ApplyResponse> responses = new ArrayList<>();
+
+        for (Apply apply : applies) {
+            ApplyResponse response = new ApplyResponse();
+            response.setApplyNo(apply.getApply_no());
+            response.setArticleNo(articleNo);
+            response.setMemberName(apply.getMemberId().getMemberName());
+            response.setApplyDate(apply.getApplyDate());
+            response.setApplyResult(apply.getApplyResult());
+            responses.add(response);
+        }
+
+        return responses;
     }
+
 
     public List<MyPageApplyResponse> getAppliesByMemberId(HttpServletRequest request) {
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));

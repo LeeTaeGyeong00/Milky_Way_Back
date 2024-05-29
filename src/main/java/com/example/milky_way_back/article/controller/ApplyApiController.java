@@ -1,6 +1,7 @@
 package com.example.milky_way_back.article.controller;
 
 
+import com.example.milky_way_back.article.exception.MemberNotFoundException;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.article.DTO.ChangeApplyResult;
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,10 +60,17 @@ public class ApplyApiController {
         return ResponseEntity.ok(response);
     }
     //지원 목록자 조회
-    //게시판 작성자, 지원한 사람만 볼수 있도록 추후에 작업하기
     @GetMapping("/posts/applylist/{id}")
-    public ResponseEntity<List<ApplyResponse>> findMemberNamesByArticleNo(@PathVariable Long id) {
-        List<ApplyResponse> memberNames = applyService.findMemberNamesByArticleNo(id);
-        return new ResponseEntity<>(memberNames, HttpStatus.OK);
+    public ResponseEntity<List<ApplyResponse>> findMemberNamesByArticleNo(HttpServletRequest request,@PathVariable Long id) {
+        try {
+            List<ApplyResponse> memberNames = applyService.findMemberNamesByArticleNo(request, id);
+            return new ResponseEntity<>(memberNames, HttpStatus.OK);
+        } catch (MemberNotFoundException e) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        } catch (AccessDeniedException e) {
+            return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

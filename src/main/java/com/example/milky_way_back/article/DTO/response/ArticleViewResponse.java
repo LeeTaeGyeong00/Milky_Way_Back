@@ -4,10 +4,14 @@ import com.example.milky_way_back.article.DTO.ArticleDTO;
 import com.example.milky_way_back.article.DTO.MemberDTO;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.article.entity.Article;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 public class ArticleViewResponse {
     private final Long article_no;
     private final String articleType;
@@ -25,6 +29,8 @@ public class ArticleViewResponse {
     private String conMethod;
     private String conInfo;
     private boolean recruit;
+    @JsonProperty("isAuthor")
+    private boolean isAuthor;
     public ArticleViewResponse(Article article){
         this.article_no = article.getArticle_no();
         this.articleType = article.getArticleType();

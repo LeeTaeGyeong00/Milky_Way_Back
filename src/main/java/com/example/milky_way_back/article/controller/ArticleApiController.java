@@ -43,35 +43,6 @@ public class ArticleApiController {
     }
     //http://localhost:8080/posts/list?page=1&size=30
     //http://localhost:8080/posts/list?page={page-id}&size={size-id}
-    //기본값
-//    @GetMapping("/posts/list")
-//    public ResponseEntity<Page<ArticleListView>> getArticles(
-//            @AuthenticationPrincipal UserDetails userDetails,
-//            HttpServletRequest request,
-//            @RequestParam(value = "page", defaultValue = "0") int page,
-//            @RequestParam(value = "size", defaultValue = "10") int size) {
-//        if (userDetails == null) {
-//            // 사용자가 인증되지 않은 경우
-//            throw new UnauthorizedException("사용자가 인증되지 않았습니다.");
-//        }
-//        // Jwt 토큰에서 회원 정보를 가져옴
-//        String accessToken = extractTokenFromRequest(request);
-//        if (accessToken == null) {
-//            throw new UnauthorizedException("토큰이 유효하지 않습니다.");
-//        }
-//
-//        Pageable pageable = PageRequest.of(page, size);
-//        Page<Article> articlePage = articleService.findAll(pageable);
-//
-//        List<ArticleListView> articles = articlePage.getContent()
-//                .stream()
-//                .map(ArticleListView::new)
-//                .collect(Collectors.toList());
-//
-//        Page<ArticleListView> articleListViewPage = new PageImpl<>(articles, pageable, articlePage.getTotalElements());
-//
-//        return ResponseEntity.ok(articleListViewPage);
-//    }
     @GetMapping("/posts/list")
     public ResponseEntity<Page<ArticleListView>> getArticles(
             HttpServletRequest request,

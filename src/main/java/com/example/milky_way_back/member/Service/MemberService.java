@@ -263,23 +263,22 @@ public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageRespons
         // Return the new tokens
         return newTokenDto;
     }
-    public List<MyPageArticleResponse> getLikedArticlesByMemberId(MyPageArticleResponse myPageArticleResponse, HttpServletRequest request) {
+    public List<MyPageArticleResponse> getLikedArticlesByMemberId(HttpServletRequest request) {
+        // 토큰에서 회원 ID 추출
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
         String memberId = authentication.getName();
+
         // 회원 ID로 회원 정보 조회
-        Optional<Member> optionalMember = memberRepository.findByMemberId(memberId);
-        if (optionalMember.isEmpty()) {
-            throw new MemberNotFoundException("Member not found with ID: " + memberId);
-        }
-        Member member = optionalMember.get();
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberId));
 
         // 회원이 좋아요를 누른 게시물 목록 조회
         List<Dibs> dibsList = dibsRepository.findByMemberNo(member);
         List<MyPageArticleResponse> likedArticles = new ArrayList<>();
 
+        // 좋아요를 누른 게시물 정보를 MyPageArticleResponse로 변환
         for (Dibs dibs : dibsList) {
             Article article = dibs.getArticleNo();
-
             MyPageArticleResponse response = new MyPageArticleResponse();
             response.setCardArticle_no(article.getArticle_no());
             response.setCardArticleType(article.getArticleType());
@@ -291,7 +290,6 @@ public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageRespons
             response.setCardLikes(article.getLikes());
             response.setCardEndDay(article.getEndDay());
             response.setCardStartDay(article.getStartDay());
-
             likedArticles.add(response);
         }
 

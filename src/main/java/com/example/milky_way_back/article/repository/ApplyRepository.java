@@ -28,6 +28,9 @@ public interface ApplyRepository extends JpaRepository<Apply, Long> {
 
     List<Apply> findByMemberId(Member member);
 
+    List<Apply> findByArticle(Article article);
+    Optional<Apply> findByArticleAndMemberId(Article article, Member member);
+
     //a= apply
     @Query("SELECT a FROM Apply a WHERE a.memberId = :member AND a.article.article_no = :articleNo")
     Optional<Apply> findByMemberAndArticleNo(@Param("member") Member member, @Param("articleNo") Long articleNo);
