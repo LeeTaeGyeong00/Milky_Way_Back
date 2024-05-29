@@ -9,6 +9,7 @@ import com.example.milky_way_back.article.repository.DibsRepository;
 import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Entity.RefreshToken;
+import com.example.milky_way_back.member.Exception.TokenExpirationException;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
 import com.example.milky_way_back.member.Jwt.UserDetailService;
 import com.example.milky_way_back.member.Repository.MemberRepository;
@@ -123,7 +124,7 @@ public class MemberService {
         return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "로그아웃 완료"));
     }
 
-    // 리프레시 토큰 확인 후 재발급 관련
+    // 토큰 확인 후 재발급 관련 메서드
     @Transactional
     public TokenDto reissue(HttpServletRequest request) {
 

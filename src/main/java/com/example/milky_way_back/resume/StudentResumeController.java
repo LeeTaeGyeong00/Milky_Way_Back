@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -33,13 +34,13 @@ public class StudentResumeController {
 
     // 경력, 자격증 저장
     @PostMapping("/member/update/profile")
-    public ResponseEntity<StatusResponse> updateCareerAndCertification(HttpServletRequest request, @RequestBody CareerAndCertificationReqeustDto careerAndCertificationDto) {
+    public ResponseEntity<StatusResponse> updateCareerAndCertification(HttpServletRequest request, @RequestBody List<CareerAndCertificationReqeustDto> careerAndCertificationDto) {
         return studentResumeService.updateCarCert(careerAndCertificationDto, request);
     }
 
     // 경력, 자격증 수정
     @PutMapping("/member/modify/profile")
-    public ResponseEntity<StatusResponse> modifyCareerAndCertification(HttpServletRequest request, @RequestBody CareerAndCertificationReqeustDto careerAndCertificationDto) {
+    public ResponseEntity<StatusResponse> modifyCareerAndCertification(HttpServletRequest request, @RequestBody List<CareerAndCertificationReqeustDto> careerAndCertificationDto) {
         studentResumeService.modifyCareerAndCertification(request);
         return studentResumeService.updateCarCert(careerAndCertificationDto, request);
     }

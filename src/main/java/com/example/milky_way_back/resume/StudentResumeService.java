@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +47,6 @@ public class StudentResumeService {
                 .studentResumeMajor(basicInfoReqeustDto.getStudentMajor())
                 .studentResumeLocate(basicInfoReqeustDto.getStudentLocate())
                 .studentResumeOnelineshow(basicInfoReqeustDto.getStudentOneLineShow())
-                .studentResumeGrade(basicInfoReqeustDto.getStudentGrade())
                 .member(member)
                 .build();
 
@@ -58,7 +58,7 @@ public class StudentResumeService {
 
 
     // 경력, 자격증 저장
-    public ResponseEntity<StatusResponse> updateCarCert(CareerAndCertificationReqeustDto careerAndCertificationDto, HttpServletRequest request) {
+    public ResponseEntity<StatusResponse> updateCarCert(List<CareerAndCertificationReqeustDto> careerAndCertificationDto, HttpServletRequest request) {
 
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
 
@@ -66,21 +66,23 @@ public class StudentResumeService {
 
         Member member = memberRepository.findByMemberId(memberId).orElseThrow();
 
-        Career career = Career.builder()
-                .carName(careerAndCertificationDto.getCarName())
-                .carStartDay(careerAndCertificationDto.getCarStartDay())
-                .carEndDay(careerAndCertificationDto.getCarEndDay())
-                .member(member)
-                .build();
+        for(CareerAndCertificationReqeustDto dto : careerAndCertificationDto) {
+            Career career = Career.builder()
+                    .carName(dto.getCarName())
+                    .carStartDay(dto.getCarStartDay())
+                    .carEndDay(dto.getCarEndDay())
+                    .member(member)
+                    .build();
 
-        Certification certification = Certification.builder()
-                .certName(careerAndCertificationDto.getCertName())
-                .certDate(careerAndCertificationDto.getCertDate())
-                .member(member)
-                .build();
+            Certification certification = Certification.builder()
+                    .certName(dto.getCertName())
+                    .certDate(dto.getCertDate())
+                    .member(member)
+                    .build();
 
-        careerRepository.save(career);
-        certificationRepository.save(certification);
+            careerRepository.save(career);
+            certificationRepository.save(certification);
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "경력/자격증 저장 완료"));
 
@@ -126,7 +128,6 @@ public class StudentResumeService {
 
         if(basicInfos == null) {
             BasicInfoResponse basicInfoResponseNull = BasicInfoResponse.builder()
-                    .studentGrade(null)
                     .studentLocate(null)
                     .studentMajor(null)
                     .studentOneLineShow(null)
@@ -136,7 +137,6 @@ public class StudentResumeService {
         }
 
         BasicInfoResponse basicInfoReqeustDto = BasicInfoResponse.builder()
-                .studentGrade(basicInfos.getStudentResumeGrade())
                 .studentLocate(basicInfos.getStudentResumeLocate())
                 .studentMajor(basicInfos.getStudentResumeMajor())
                 .studentOneLineShow(basicInfos.getStudentResumeOnelineshow())
