@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
@@ -12,10 +13,10 @@ import java.time.LocalDateTime;
 public class CareerAndCertificationResponse {
     // 경력
     private String carName;
-    private LocalDateTime carStartDay;
-    private LocalDateTime carEndDay;
+    private LocalDate carStartDay;
+    private LocalDate carEndDay;
 
     // 자격증
     private String certName;
-    private LocalDateTime certDate;
+    private LocalDate certDate;
 }

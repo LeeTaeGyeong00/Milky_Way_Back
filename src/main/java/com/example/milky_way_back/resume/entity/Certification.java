@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Table(name="certification")
@@ -24,8 +25,7 @@ public class Certification {
     private String certName;
 
     @Column(name = "cert_date")
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime certDate;
+    private LocalDate certDate;
 
     // member join
     @JoinColumn(name="cert_member_no", referencedColumnName = "member_no", nullable = false)
