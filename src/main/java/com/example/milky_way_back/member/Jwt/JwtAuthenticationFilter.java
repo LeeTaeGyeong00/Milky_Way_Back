@@ -3,7 +3,6 @@ package com.example.milky_way_back.member.Jwt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -30,25 +29,38 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         // jwt 헤더 토큰 추출
         String token = getJwtToken((HttpServletRequest) servletRequest);
 
-        if(token != null && tokenProvider.validateToken(token)) {
+        try {
+            if(token != null && tokenProvider.validateToken(token)) {
 
-            Authentication authentication = tokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication); // 객체 저장
+                Authentication authentication = tokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication); // 객체 저장
 
-            HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
-                @Override
-                public String getHeader(String name) {
-                    if("Authorization".equals(name)) {
-                        return token;
+                HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
+
+                    @Override
+                    public String getHeader(String name) {
+                        if("Authorization".equals(name)) {
+                            return token;
+                        }
+                        return super.getHeader(name);
                     }
-                    return super.getHeader(name);
-                }
-            };
+                };
 
-            filterChain.doFilter(wrappedRequest, response);
-        } else {
-            filterChain.doFilter(servletRequest, servletResponse);
+                filterChain.doFilter(wrappedRequest, response);
+
+            } else if(!tokenProvider.validateToken(token)) {
+
+                ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+            } else {
+
+                filterChain.doFilter(servletRequest, servletResponse);
+            }
+        } catch (Exception e) {
+            logger.info("토큰 오류");
+            ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
+
     }
 
     private String getJwtToken(HttpServletRequest request) {
