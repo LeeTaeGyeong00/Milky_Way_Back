@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
                 filterChain.doFilter(wrappedRequest, response);
 
-            } else if(!tokenProvider.validateToken(token)) {
+            } else if(token != null && !tokenProvider.validateToken(token)) {
 
                 ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
