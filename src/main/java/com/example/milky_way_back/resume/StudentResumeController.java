@@ -1,10 +1,7 @@
 package com.example.milky_way_back.resume;
 
 import com.example.milky_way_back.member.Dto.StatusResponse;
-import com.example.milky_way_back.resume.dto.BasicInfoReqeustDto;
-import com.example.milky_way_back.resume.dto.BasicInfoResponse;
-import com.example.milky_way_back.resume.dto.CareerAndCertificationReqeustDto;
-import com.example.milky_way_back.resume.dto.CareerAndCertificationResponse;
+import com.example.milky_way_back.resume.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,15 +31,15 @@ public class StudentResumeController {
 
     // 경력, 자격증 저장
     @PostMapping("/member/update/profile")
-    public ResponseEntity<StatusResponse> updateCareerAndCertification(HttpServletRequest request, @RequestBody List<CareerAndCertificationReqeustDto> careerAndCertificationDto) {
-        return studentResumeService.updateCarCert(careerAndCertificationDto, request);
+    public ResponseEntity<StatusResponse> updateCareerAndCertification(HttpServletRequest request, @RequestBody MemberInfoResponse memberInfoResponse) {
+        return studentResumeService.updateCarCert(request, memberInfoResponse);
     }
 
     // 경력, 자격증 수정
     @PutMapping("/member/modify/profile")
-    public ResponseEntity<StatusResponse> modifyCareerAndCertification(HttpServletRequest request, @RequestBody List<CareerAndCertificationReqeustDto> careerAndCertificationDto) {
+    public ResponseEntity<StatusResponse> modifyCareerAndCertification(HttpServletRequest request, @RequestBody MemberInfoResponse memberInfoResponse)  {
         studentResumeService.modifyCareerAndCertification(request);
-        return studentResumeService.updateCarCert(careerAndCertificationDto, request);
+        return studentResumeService.updateCarCert(request,memberInfoResponse);
     }
 
     // 기본 정보 조회
@@ -53,7 +50,7 @@ public class StudentResumeController {
 
     // 자격증, 경력 조회
     @GetMapping("/myResume/careerAndCertification")
-    public ResponseEntity<CareerAndCertificationResponse> memberCareerAndCertificationResponse(HttpServletRequest request) {
+    public ResponseEntity<MemberInfoResponse> memberCareerAndCertificationResponse(HttpServletRequest request) {
         return studentResumeService.findCareerAndCertification(request);
     }
 
