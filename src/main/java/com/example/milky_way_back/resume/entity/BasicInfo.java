@@ -18,9 +18,6 @@ public class BasicInfo {
     @Column(name = "studentresume_no")
     private Long studentResumeNo;
 
-    @Column(name = "studentresume_grade")
-    private Integer studentResumeGrade;
-
     @Column(name = "studentresume_major")
     private String studentResumeMajor;
 

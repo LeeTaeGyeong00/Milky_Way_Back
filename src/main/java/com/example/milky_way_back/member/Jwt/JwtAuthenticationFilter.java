@@ -57,7 +57,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 filterChain.doFilter(servletRequest, servletResponse);
             }
         } catch (Exception e) {
-            logger.info("토큰 오류");
+            logger.info("잘못된 접근");
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
 

@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,14 +41,28 @@ public class StudentResumeService {
         String memberId = authentication.getName(); // 접속한 사람의 아이디 가져오기
         Member member = memberRepository.findByMemberId(memberId).orElseThrow();
 
-        BasicInfo basicInfo = BasicInfo.builder()
-                .studentResumeMajor(basicInfoReqeustDto.getStudentMajor())
-                .studentResumeLocate(basicInfoReqeustDto.getStudentLocate())
-                .studentResumeOnelineshow(basicInfoReqeustDto.getStudentOneLineShow())
-                .member(member)
-                .build();
+        BasicInfo basicInfo = basicInfoRepository.findByMember(member);
 
-        basicInfoRepository.save(basicInfo);
+        if(basicInfo == null) {
+
+            BasicInfo basicInfoes = BasicInfo.builder()
+                    .studentResumeMajor(basicInfoReqeustDto.getStudentMajor())
+                    .studentResumeLocate(basicInfoReqeustDto.getStudentLocate())
+                    .studentResumeOnelineshow(basicInfoReqeustDto.getStudentOneLineShow())
+                    .member(member)
+                    .build();
+
+            basicInfoRepository.save(basicInfoes);
+
+        } else {
+
+            try {
+                throw new Exception("이미 있는 회원입니다.");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "사용자 정보 저장 완료"));
     }
@@ -145,13 +158,13 @@ public class StudentResumeService {
             return ResponseEntity.status(HttpStatus.OK).body(basicInfoResponseNull);
         }
 
-        BasicInfoResponse basicInfoReqeustDto = BasicInfoResponse.builder()
+        BasicInfoResponse basicInfoResponse = BasicInfoResponse.builder()
                 .studentLocate(basicInfos.getStudentResumeLocate())
                 .studentMajor(basicInfos.getStudentResumeMajor())
                 .studentOneLineShow(basicInfos.getStudentResumeOnelineshow())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.OK).body(basicInfoReqeustDto);
+        return ResponseEntity.status(HttpStatus.OK).body(basicInfoResponse);
 
     }
 

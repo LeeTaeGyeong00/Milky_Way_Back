@@ -139,6 +139,7 @@ public class MemberService {
         if(refreshTokenValid) {
             return tokenProvider.createAccessToken(authentication);
         } else { // 리프레시 토큰도 만료됐을 경우
+            refreshTokenRepository.deleteByMember(member);
             return TokenDto.builder()
                     .grantType("Bearer")
                     .refreshToken(refreshToken.getAuthRefreshToken())
