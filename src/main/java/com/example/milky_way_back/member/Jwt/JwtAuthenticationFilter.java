@@ -58,7 +58,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             }
         } catch (Exception e) {
             logger.info("잘못된 접근");
-            ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_BAD_GATEWAY);
         }
 
     }
