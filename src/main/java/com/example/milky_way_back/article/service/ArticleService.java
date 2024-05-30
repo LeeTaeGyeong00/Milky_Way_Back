@@ -8,6 +8,7 @@ import com.example.milky_way_back.article.entity.Dibs;
 import com.example.milky_way_back.article.exception.ArticleNotFoundException;
 import com.example.milky_way_back.article.exception.DuplicateLikeException;
 import com.example.milky_way_back.article.exception.UnauthorizedException;
+import com.example.milky_way_back.article.repository.ApplyRepository;
 import com.example.milky_way_back.article.repository.DibsRepository;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.member.Repository.MemberRepository;
@@ -43,6 +44,7 @@ public class ArticleService {
     private final TokenProvider tokenProvider;
     private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
+    private final ApplyRepository applyRepository;
     private final DibsRepository dibsRepository;
 
     public Article save(HttpServletRequest request, AddArticle addArticle) {
@@ -105,49 +107,41 @@ public class ArticleService {
 //            // 회원을 찾지 못한 경우에는 예외 처리 또는 다른 방법으로 처리
 //            throw new MemberNotFoundException("Member not found with ID: " + memberId);
 //        }
-//    }
-public ArticleViewResponse findById(HttpServletRequest request,long id) {
-    // 토큰에서 인증 정보 가져오기
-    Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
-    String memberId = authentication.getName();
+    //    }
+    public ArticleViewResponse findById(HttpServletRequest request,long id) {
+        // 토큰에서 인증 정보 가져오기
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
 
-    // 회원 ID로 회원 정보 조회
-    Member member = memberRepository.findByMemberId(memberId)
-            .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberId));
+        // 회원 ID로 회원 정보 조회
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberId));
 
-    // 게시물 조회
-    Article article = articleRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
+        // 게시물 조회
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found : " + id));
 
-    // 게시물 작성자와 요청한 사용자가 동일한지 확인
-    boolean isAuthor = article.getMemberId().getMemberNo().equals(member.getMemberNo());
+        // 게시물 작성자와 요청한 사용자가 동일한지 확인
+        boolean isAuthor = article.getMemberId().getMemberNo().equals(member.getMemberNo());
 
-    // ArticleViewResponse 생성 및 isAuthor 설정
-    ArticleViewResponse response = new ArticleViewResponse(article);
-    response.setAuthor(isAuthor);
+        // 사용자가 해당 게시판에 지원했는지 확인
+        boolean isApplier = applyRepository.findByArticleAndMemberId(article, member).isPresent();
 
-    return response;
-}
+        // 사용자가 해당 게시물에 좋아요를 눌렀는지 확인
+        boolean isLike = dibsRepository.findByArticleNoAndMemberNo(article, member).isPresent();
+
+
+        // ArticleViewResponse 생성 및 isAuthor 설정
+        ArticleViewResponse response = new ArticleViewResponse(article);
+        response.setAuthor(isAuthor);
+        response.setApplier(isApplier);
+        response.setLike(isLike);
+
+        return response;
+    }
     public void delete(long id){
         articleRepository.deleteById(id);
     }
-//    @Transactional
-//    public Article update(long id, UpdateRequest request) {
-//        Article article = articleRepository.findById(id)
-//                .orElseThrow(() -> new IllegalArgumentException("not found: "+id));
-//
-//        article.update(request.getTitle(), request.getContent());
-//        return article;
-//    } 수정 넣을건가요?
-// 게시글 업데이트
-    //회원 검증후 적용
-//    public Article updateRecruit(long id) {
-//        Article article = articleRepository.findById(id)
-//                .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
-//
-//        article.setRecruit(false);
-//        return article;
-//    }
     public Article updateRecruit(HttpServletRequest request, long id) {
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
         String memberId = authentication.getName();

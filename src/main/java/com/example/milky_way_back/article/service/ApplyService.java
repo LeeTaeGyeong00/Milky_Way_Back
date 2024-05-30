@@ -53,11 +53,16 @@ public class ApplyService {
             if (applyRepository.findByMemberAndArticleNo(member, articleNo).isPresent()) {
                 throw new DuplicateApplyException("Member has already applied to this article.");
             }
+            // 게시글 정보 조회
+            Article article = articleRepository.findById(articleNo)
+                    .orElseThrow(() -> new ArticleNotFoundException("Article not found with ID: " + articleNo));
             // AddArticle에 회원 정보 설정
             Apply apply = Apply.builder()
                     .article(articleRepository.findById(articleNo).orElseThrow(() -> new ArticleNotFoundException("Article not found with ID: " + articleNo)))
                     .member(member) // Set the Member object directly
                     .build();
+            // applyNow 필드 증가
+            article.setApplyNow(article.getApplyNow() + 1);
             // 게시물 저장
             return applyRepository.save(apply);
         } else {

@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface DibsRepository extends JpaRepository<Dibs, Long> {
     Optional<Dibs> findByMemberNoAndArticleNo(Member member, Article article);
     List<Dibs> findByMemberNo(Member member);
+    Optional<Dibs> findByArticleNoAndMemberNo(Article article, Member member);
 }

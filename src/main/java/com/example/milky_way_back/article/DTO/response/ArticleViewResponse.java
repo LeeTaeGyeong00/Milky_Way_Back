@@ -1,6 +1,5 @@
 package com.example.milky_way_back.article.DTO.response;
 
-import com.example.milky_way_back.article.DTO.ArticleDTO;
 import com.example.milky_way_back.article.DTO.MemberDTO;
 import com.example.milky_way_back.member.Entity.Member;
 import com.example.milky_way_back.article.entity.Article;
@@ -31,6 +30,10 @@ public class ArticleViewResponse {
     private boolean recruit;
     @JsonProperty("isAuthor")
     private boolean isAuthor;
+    @JsonProperty("isApplier")
+    private boolean isApplier;
+    @JsonProperty("isLike")
+    private boolean isLike;
     public ArticleViewResponse(Article article){
         this.article_no = article.getArticle_no();
         this.articleType = article.getArticleType();

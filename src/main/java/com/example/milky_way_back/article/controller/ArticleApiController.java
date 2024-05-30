@@ -1,6 +1,7 @@
 package com.example.milky_way_back.article.controller;
 
 import com.example.milky_way_back.article.DTO.response.LikeResponse;
+import com.example.milky_way_back.article.exception.DibsNotFoundException;
 import com.example.milky_way_back.article.exception.DuplicateLikeException;
 import com.example.milky_way_back.article.exception.MemberNotFoundException;
 import com.example.milky_way_back.article.repository.DibsRepository;
@@ -12,6 +13,7 @@ import com.example.milky_way_back.article.entity.Article;
 import com.example.milky_way_back.article.exception.UnauthorizedException;
 import com.example.milky_way_back.article.service.ArticleService;
 import com.example.milky_way_back.member.Repository.MemberRepository;
+import com.example.milky_way_back.member.Service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 public class ArticleApiController {
     private final ArticleService articleService;
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
         // 게시글 추가
     @PostMapping("/posts/write")
@@ -104,4 +107,17 @@ public class ArticleApiController {
         }
     }
 
+    @DeleteMapping("/posts/likes/{id}")
+    public ResponseEntity<?> removeDibs (HttpServletRequest request,@PathVariable("id") Long id) {
+        try {
+            memberService.removeDibs(request, id);
+            return ResponseEntity.ok("Like removed successfully");
+        } catch (MemberNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Member not found");
+        } catch (DibsNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Like not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while removing like");
+        }
+    }
 }

@@ -3,7 +3,10 @@ package com.example.milky_way_back.member.Service;
 import com.example.milky_way_back.article.DTO.response.MyPageArticleResponse;
 import com.example.milky_way_back.article.entity.Article;
 import com.example.milky_way_back.article.entity.Dibs;
+import com.example.milky_way_back.article.exception.ArticleNotFoundException;
+import com.example.milky_way_back.article.exception.DibsNotFoundException;
 import com.example.milky_way_back.article.exception.MemberNotFoundException;
+import com.example.milky_way_back.article.repository.ArticleRepository;
 import com.example.milky_way_back.article.repository.DibsRepository;
 import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Entity.Member;
@@ -45,6 +48,7 @@ public class MemberService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final RefreshTokenRepository refreshTokenRepository;
     private final DibsRepository dibsRepository;
+    private final ArticleRepository articleRepository;
 
     @Autowired
     private UserDetailsService userDetailService;
@@ -293,5 +297,25 @@ public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageRespons
         }
 
         return likedArticles;
+    }
+    @Transactional
+    public void removeDibs(HttpServletRequest request, Long articleId) {
+        // 토큰에서 인증 정보 가져오기
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
+
+        // 회원 ID로 회원 정보 조회
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberId));
+
+        // 게시물 조회
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new ArticleNotFoundException("Article not found with ID: " + articleId));
+
+        // 좋아요 정보 조회 및 삭제
+        Dibs dibs = dibsRepository.findByArticleNoAndMemberNo(article, member)
+                .orElseThrow(() -> new DibsNotFoundException("Like not found for this article"));
+
+        dibsRepository.delete(dibs);
     }
 }
