@@ -153,6 +153,9 @@ public class StudentResumeService {
                     .studentLocate(null)
                     .studentMajor(null)
                     .studentOneLineShow(null)
+                    .memberId(memberId)
+                    .memberName(member.getMemberName())
+                    .memberPhoneNum(member.getMemberPhoneNum())
                     .build();
 
             return ResponseEntity.status(HttpStatus.OK).body(basicInfoResponseNull);
@@ -162,6 +165,9 @@ public class StudentResumeService {
                 .studentLocate(basicInfos.getStudentResumeLocate())
                 .studentMajor(basicInfos.getStudentResumeMajor())
                 .studentOneLineShow(basicInfos.getStudentResumeOnelineshow())
+                .memberId(memberId)
+                .memberName(member.getMemberName())
+                .memberPhoneNum(member.getMemberPhoneNum())
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(basicInfoResponse);

@@ -11,4 +11,7 @@ public class BasicInfoResponse {
     private String studentLocate;
     private String studentMajor;
     private String studentOneLineShow;
+    private String memberId;
+    private String memberName;
+    private String memberPhoneNum;
 }
