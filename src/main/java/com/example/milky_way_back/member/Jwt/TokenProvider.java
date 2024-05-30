@@ -47,7 +47,7 @@ public class TokenProvider {
 
         Member member = memberRepository.findByMemberId(authentication.getName()).orElseThrow();
 
-        Date accessTokenExpire = new Date(now + 30); // 30분
+        Date accessTokenExpire = new Date(now + 1800000); // 30분
         Date refreshTokenExpire = new Date(now + 86400000); // 1일
 
         // 어세스 토큰 생성
@@ -83,7 +83,7 @@ public class TokenProvider {
 
         long now = (new Date()).getTime(); // 현재 시간
 
-        Date accessTokenExpire = new Date(now + 30); // 30분
+        Date accessTokenExpire = new Date(now + 1800000); // 30분
 
         // 어세스 토큰 생성
         String accessToken = Jwts.builder()
