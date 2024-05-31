@@ -14,7 +14,19 @@ import com.example.milky_way_back.article.entity.Apply;
 import com.example.milky_way_back.article.repository.ApplyRepository;
 import com.example.milky_way_back.article.repository.ArticleRepository;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
+import com.example.milky_way_back.resume.dto.BasicInfoResponse;
+import com.example.milky_way_back.resume.dto.CareerDto;
+import com.example.milky_way_back.resume.dto.CertificationDto;
+import com.example.milky_way_back.resume.dto.MemberInfoResponse;
+import com.example.milky_way_back.resume.entity.BasicInfo;
+import com.example.milky_way_back.resume.entity.Career;
+import com.example.milky_way_back.resume.entity.Certification;
+import com.example.milky_way_back.resume.repository.BasicInfoRepository;
+import com.example.milky_way_back.resume.repository.CareerRepository;
+import com.example.milky_way_back.resume.repository.CertificationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +37,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -33,10 +46,9 @@ public class ApplyService {
     private final ApplyRepository applyRepository;
     private final ArticleRepository articleRepository;
     private final MemberRepository memberRepository;
-
-    //    public List<Apply> findAll() {
-//        return applyRepository.findAll();
-//    }
+    private final BasicInfoRepository basicInfoRepository;
+    private final CareerRepository careerRepository;
+    private final CertificationRepository certificationRepository;
     @Transactional
     //회원 번호와 게시글 번호를 받아 지원 정보를 처리하는 메서드
     public Apply apply(HttpServletRequest request, Long articleNo, ApplyRequest applyRequest) {
@@ -196,6 +208,62 @@ public class ApplyService {
         }
 
         return "applyResult updated successfully";
+    }
+
+    public ResponseEntity<BasicInfoResponse> findBasicInfo(Long memberNo) {
+        Member member = memberRepository.findById(memberNo)
+                .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberNo));
+
+        BasicInfo basicInfos = basicInfoRepository.findByMember(member);
+
+        BasicInfoResponse basicInfoResponse = basicInfos == null ?
+                BasicInfoResponse.builder()
+                        .studentLocate(null)
+                        .studentMajor(null)
+                        .studentOneLineShow(null)
+                        .memberId(member.getMemberId())
+                        .memberName(member.getMemberName())
+                        .memberPhoneNum(member.getMemberPhoneNum())
+                        .build() :
+                BasicInfoResponse.builder()
+                        .studentLocate(basicInfos.getStudentResumeLocate())
+                        .studentMajor(basicInfos.getStudentResumeMajor())
+                        .studentOneLineShow(basicInfos.getStudentResumeOnelineshow())
+                        .memberId(member.getMemberId())
+                        .memberName(member.getMemberName())
+                        .memberPhoneNum(member.getMemberPhoneNum())
+                        .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(basicInfoResponse);
+    }
+
+    public ResponseEntity<MemberInfoResponse> findCareerAndCertification(Long memberNo) {
+        Member member = memberRepository.findById(memberNo)
+                .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberNo));
+
+        List<Career> careers = careerRepository.findAllByMember(member);
+        List<Certification> certifications = certificationRepository.findAllByMember(member);
+
+        List<CareerDto> careerList = careers.stream()
+                .map(career -> CareerDto.builder()
+                        .carName(career.getCarName())
+                        .carStartDay(career.getCarStartDay())
+                        .carEndDay(career.getCarEndDay())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<CertificationDto> certificationDtoList = certifications.stream()
+                .map(certification -> CertificationDto.builder()
+                        .certName(certification.getCertName())
+                        .certDate(certification.getCertDate())
+                        .build())
+                .collect(Collectors.toList());
+
+        MemberInfoResponse memberInfoResponse = new MemberInfoResponse();
+        memberInfoResponse.setCareerDtoList(careerList);
+        memberInfoResponse.setCertificationDtoList(certificationDtoList);
+
+        return ResponseEntity.status(HttpStatus.OK).body(memberInfoResponse);
     }
 }
 

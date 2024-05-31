@@ -15,6 +15,9 @@ import com.example.milky_way_back.article.repository.ArticleRepository;
 import com.example.milky_way_back.article.service.ApplyService;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
 import com.example.milky_way_back.member.Repository.MemberRepository;
+import com.example.milky_way_back.resume.StudentResumeService;
+import com.example.milky_way_back.resume.dto.BasicInfoResponse;
+import com.example.milky_way_back.resume.dto.MemberInfoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,11 +37,8 @@ import java.util.Optional;
 @RestController
 public class ApplyApiController {
     private final ApplyService applyService;
-    private final MemberRepository memberRepository;
-    private final ArticleRepository articleRepository;
     private final ApplyRepository applyRepository;
-    private final TokenProvider tokenProvider;
-    private final ObjectMapper objectMapper;
+    private final StudentResumeService studentResumeService;
 
     //지원 신청
         @PostMapping("/posts/apply/{id}")
@@ -72,5 +72,24 @@ public class ApplyApiController {
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    // 기본 정보 조회
+    @GetMapping("/apply/basicInfo/{id}")
+    public ResponseEntity<BasicInfoResponse> applyInfoResponse(HttpServletRequest request, @PathVariable Long id) {
+        // Apply 엔티티에서 applyNo를 기반으로 member 조회
+        Apply apply = applyRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Apply not found with ID: " + id));
+        // memberNo를 사용하여 기본 정보 조회
+        return applyService.findBasicInfo(apply.getMemberId().getMemberNo());
+    }
+
+    // 자격증, 경력 조회
+    @GetMapping("/apply/careerAndCertification/{id}")
+    public ResponseEntity<MemberInfoResponse> applyCareerAndCertificationResponse(HttpServletRequest request, @PathVariable Long id) {
+        // Apply 엔티티에서 applyNo를 기반으로 member 조회
+        Apply apply = applyRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Apply not found with ID: " + id));
+        // memberNo를 사용하여 경력 및 자격증 정보 조회
+        return applyService.findCareerAndCertification(apply.getMemberId().getMemberNo());
     }
 }
