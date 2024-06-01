@@ -121,11 +121,10 @@ public class TokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
-    // 토큰 검증
+    // 토큰 검증 : response entity 형태로 메세지 반환
     public ResponseEntity<StatusResponse> validateToken(String token) {
 
         try {
-
             Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()

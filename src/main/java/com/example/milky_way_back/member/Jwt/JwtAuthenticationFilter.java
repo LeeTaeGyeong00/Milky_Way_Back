@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
                 filterChain.doFilter(wrappedRequest, response);
 
-            } else if(token != null && tokenProvider.validateToken(token).getBody().getStatus() == 401) {
+            } else if(token != null && tokenProvider.validateToken(token).getBody().getStatus() == 401) { // 토큰 이상 발생 시
 
                 ((HttpServletResponse) servletResponse).setContentType("application/json");
                 ((HttpServletResponse) servletResponse).setCharacterEncoding("UTF-8");
