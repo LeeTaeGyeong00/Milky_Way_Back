@@ -123,7 +123,7 @@ public class StudentResumeService {
         basicInfoRepository.deleteByMember(member);
     }
 
-    // 경력, 자격증 수정 시 기존 내용 삭제
+    // 경력, 자격증 수정
     @Transactional
     public void modifyCareerAndCertification(HttpServletRequest request) {
 

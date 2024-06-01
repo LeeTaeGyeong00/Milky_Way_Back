@@ -1,5 +1,7 @@
 package com.example.milky_way_back.member.Jwt;
 
+import com.example.milky_way_back.member.Dto.StatusResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,7 +32,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         String token = getJwtToken((HttpServletRequest) servletRequest);
 
         try {
-            if(token != null && tokenProvider.validateToken(token)) {
+            if(token != null && tokenProvider.validateToken(token).getBody().getStatus() == 200) {
 
                 Authentication authentication = tokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication); // 객체 저장
@@ -48,12 +50,15 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
                 filterChain.doFilter(wrappedRequest, response);
 
-            } else if(token != null && !tokenProvider.validateToken(token)) {
+            } else if(token != null && tokenProvider.validateToken(token).getBody().getStatus() == 401) {
 
-                ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                ((HttpServletResponse) servletResponse).setContentType("application/json");
+                ((HttpServletResponse) servletResponse).setCharacterEncoding("UTF-8");
+                ((HttpServletResponse) servletResponse).getWriter().write(new ObjectMapper().writeValueAsString(tokenProvider.validateToken(token).getBody()));
+                ((HttpServletResponse) servletResponse).setStatus(tokenProvider.validateToken(token).getBody().getStatus());
+
 
             } else {
-
                 filterChain.doFilter(servletRequest, servletResponse);
             }
         } catch (Exception e) {

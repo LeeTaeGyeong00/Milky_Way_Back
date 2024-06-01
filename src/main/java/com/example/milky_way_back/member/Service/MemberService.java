@@ -137,7 +137,7 @@ public class MemberService {
 
         RefreshToken refreshToken = refreshTokenRepository.findByMember(member).orElseThrow();
 
-        boolean refreshTokenValid = tokenProvider.validateToken(refreshToken.getAuthRefreshToken());
+        boolean refreshTokenValid = (tokenProvider.validateToken(refreshToken.getAuthRefreshToken()).getBody().getStatus() == 200);
 
         // 리프레시 토큰이 만료가 안 됐을 경우
         if(refreshTokenValid) {
