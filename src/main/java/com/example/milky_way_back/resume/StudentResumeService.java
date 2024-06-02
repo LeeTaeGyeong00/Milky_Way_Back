@@ -112,15 +112,21 @@ public class StudentResumeService {
 
     // 기본 정보 수정 시 기존 내용 삭제
     @Transactional
-    public void modifyBasicInfo(HttpServletRequest request) {
+    public ResponseEntity<StatusResponse> modifyBasicInfo(HttpServletRequest request, BasicInfoReqeustDto basicInfoReqeustDto) {
 
         Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
-        String memberId = authentication.getName();
 
-        Member member = memberRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new RuntimeException("회원을 찾을 수 없음"));
+        String memberId = authentication.getName(); // 접속한 사람의 아이디 가져오기
 
-        basicInfoRepository.deleteByMember(member);
+        Member member = memberRepository.findByMemberId(memberId).orElseThrow();
+
+        basicInfoRepository.updateBasicInfoByMember(member,
+                basicInfoReqeustDto.getStudentLocate(),
+                basicInfoReqeustDto.getStudentMajor(),
+                basicInfoReqeustDto.getStudentOneLineShow());
+
+        return ResponseEntity.status(HttpStatus.OK).body(new StatusResponse(HttpStatus.OK.value(), "기본 정보 수정 완료"));
+
     }
 
     // 경력, 자격증 수정

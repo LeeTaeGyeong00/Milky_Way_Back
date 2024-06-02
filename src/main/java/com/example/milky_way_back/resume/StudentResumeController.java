@@ -25,8 +25,7 @@ public class StudentResumeController {
     // 기본 정보 수정
     @PutMapping("/member/modify/info")
     public ResponseEntity<StatusResponse> modifyInfo(HttpServletRequest request, @RequestBody BasicInfoReqeustDto basicInfoReqeustDto) {
-        studentResumeService.modifyBasicInfo(request);
-        return studentResumeService.updateBasicInfo(basicInfoReqeustDto, request);
+        return studentResumeService.modifyBasicInfo(request, basicInfoReqeustDto);
     }
 
     // 경력, 자격증 저장

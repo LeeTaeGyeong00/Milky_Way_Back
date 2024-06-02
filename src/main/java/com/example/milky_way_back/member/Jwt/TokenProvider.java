@@ -3,7 +3,9 @@ package com.example.milky_way_back.member.Jwt;
 import com.example.milky_way_back.member.Dto.StatusResponse;
 import com.example.milky_way_back.member.Dto.TokenDto;
 import com.example.milky_way_back.member.Entity.Member;
+import com.example.milky_way_back.member.Entity.RefreshToken;
 import com.example.milky_way_back.member.Repository.MemberRepository;
+import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -32,11 +34,13 @@ public class TokenProvider {
 
     private final Key secretKey;
     private final MemberRepository memberRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public TokenProvider(@Value("${jwt.secret.key}") String key, MemberRepository memberRepository) {
+    public TokenProvider(@Value("${jwt.secret.key}") String key, MemberRepository memberRepository, RefreshTokenRepository refreshTokenRepository) {
         byte[] keyBytes = Decoders.BASE64.decode(key);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.memberRepository = memberRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     // 유저 정보 가지고 refresh, access 토큰 생성
@@ -63,9 +67,7 @@ public class TokenProvider {
 
         // 리프레시 토큰 생성
         String refreshToken = Jwts.builder()
-                .setSubject(authentication.getName())
                 .setExpiration(refreshTokenExpire)
-                .claim("auth", authorities) /* todo claim 추가 */
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -135,6 +137,14 @@ public class TokenProvider {
             log.info("Invalid JWT Token", e);
         } catch (ExpiredJwtException e) {
             log.info("Expired JWT Token", e);
+
+            // 만료된 리프레시 토큰 삭제
+            RefreshToken refreshToken = refreshTokenRepository.findByAuthRefreshToken(token);
+
+            if(refreshToken != null) {
+                refreshTokenRepository.delete(refreshToken);
+            }
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new StatusResponse(HttpStatus.UNAUTHORIZED.value(), "expired"));
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT Token", e);
