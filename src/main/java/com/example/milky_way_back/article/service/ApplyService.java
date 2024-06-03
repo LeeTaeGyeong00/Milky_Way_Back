@@ -210,7 +210,10 @@ public class ApplyService {
         return "applyResult updated successfully";
     }
 
-    public ResponseEntity<BasicInfoResponse> findBasicInfo(Long memberNo) {
+    public ResponseEntity<BasicInfoResponse> findBasicInfo(HttpServletRequest request ,Long memberNo) {
+        Authentication authentication = tokenProvider.getAuthentication(request.getHeader("Authorization"));
+        String memberId = authentication.getName();
+
         Member member = memberRepository.findById(memberNo)
                 .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberNo));
 
@@ -237,7 +240,7 @@ public class ApplyService {
         return ResponseEntity.status(HttpStatus.OK).body(basicInfoResponse);
     }
 
-    public ResponseEntity<MemberInfoResponse> findCareerAndCertification(Long memberNo) {
+    public ResponseEntity<MemberInfoResponse> findCareerAndCertification(HttpServletRequest request,Long memberNo) {
         Member member = memberRepository.findById(memberNo)
                 .orElseThrow(() -> new MemberNotFoundException("Member not found with ID: " + memberNo));
 
