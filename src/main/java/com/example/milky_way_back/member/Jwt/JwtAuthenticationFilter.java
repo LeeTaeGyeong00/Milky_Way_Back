@@ -1,8 +1,12 @@
 package com.example.milky_way_back.member.Jwt;
 
 import com.example.milky_way_back.member.Dto.StatusResponse;
+import com.example.milky_way_back.member.Dto.TokenDto;
+import com.example.milky_way_back.member.Entity.RefreshToken;
+import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -32,6 +36,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         String token = getJwtToken((HttpServletRequest) servletRequest);
 
         try {
+            // 어세스 토큰일 경우
             if(token != null && tokenProvider.validateToken(token).getBody().getStatus() == 200) {
 
                 Authentication authentication = tokenProvider.getAuthentication(token);
@@ -63,7 +68,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             }
         } catch (Exception e) {
             logger.info("잘못된 접근");
-            ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+
         }
 
     }
@@ -78,4 +83,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         return null;
     }
+
+
+
 }

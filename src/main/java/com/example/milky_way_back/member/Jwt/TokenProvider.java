@@ -155,7 +155,7 @@ public class TokenProvider {
     }
 
     // claims 정보 가져오기
-    private Claims parseClaims(String accessToken) {
+    public Claims parseClaims(String accessToken) {
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(secretKey)
@@ -166,5 +166,4 @@ public class TokenProvider {
             return e.getClaims();
         }
     }
-
 }

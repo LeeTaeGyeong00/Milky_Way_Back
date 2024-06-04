@@ -2,6 +2,7 @@ package com.example.milky_way_back.config;
 
 import com.example.milky_way_back.member.Jwt.JwtAuthenticationFilter;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
+import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +34,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests((request) -> request.requestMatchers(PathRequest.toStaticResources()
                                 .atCommonLocations()).permitAll()
                         .antMatchers("/signup", "/login", "/signup/checkId").permitAll() // 해당 경로는 모두 접근 가능
-                        .anyRequest().permitAll() /* todo 인증 권한 설정 */
+                        .anyRequest().authenticated() /* todo 인증 권한 설정 */
                 )
                 .cors()
                 .and()// cors config 적용
