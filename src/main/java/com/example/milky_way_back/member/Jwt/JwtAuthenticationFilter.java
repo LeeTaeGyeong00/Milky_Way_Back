@@ -5,6 +5,7 @@ import com.example.milky_way_back.member.Dto.TokenDto;
 import com.example.milky_way_back.member.Entity.RefreshToken;
 import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -34,41 +35,48 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         // jwt 헤더 토큰 추출
         String token = getJwtToken((HttpServletRequest) servletRequest);
-
         try {
-            // 어세스 토큰일 경우
-            if(token != null && tokenProvider.validateToken(token).getBody().getStatus() == 200) {
 
-                Authentication authentication = tokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication); // 객체 저장
+            if(token != null) {
 
-                HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
+                int status = tokenProvider.validateToken(token).getBody().getStatus();
 
-                    @Override
-                    public String getHeader(String name) {
-                        if("Authorization".equals(name)) {
-                            return token;
+                if (status == 200) {
+
+                    Authentication authentication = tokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
+
+                        @Override
+                        public String getHeader(String name) {
+                            if("Authorization".equals(name)) {
+                                return token;
+                            }
+                            return super.getHeader(name);
                         }
-                        return super.getHeader(name);
-                    }
-                };
+                    };
+                    filterChain.doFilter(wrappedRequest, response);
 
-                filterChain.doFilter(wrappedRequest, response);
+                } else if (status == 401) { // 토큰 이상 발생 시
 
-            } else if(token != null && tokenProvider.validateToken(token).getBody().getStatus() == 401) { // 토큰 이상 발생 시
+                    ((HttpServletResponse) servletResponse).setContentType("application/json");
+                    ((HttpServletResponse) servletResponse).setCharacterEncoding("UTF-8");
+                    ((HttpServletResponse) servletResponse).getWriter().write(new ObjectMapper().writeValueAsString(tokenProvider.validateToken(token).getBody()));
+                    ((HttpServletResponse) servletResponse).setStatus(status);
 
-                ((HttpServletResponse) servletResponse).setContentType("application/json");
-                ((HttpServletResponse) servletResponse).setCharacterEncoding("UTF-8");
-                ((HttpServletResponse) servletResponse).getWriter().write(new ObjectMapper().writeValueAsString(tokenProvider.validateToken(token).getBody()));
-                ((HttpServletResponse) servletResponse).setStatus(tokenProvider.validateToken(token).getBody().getStatus());
-
-
+                } else {
+                    filterChain.doFilter(servletRequest, servletResponse);
+                }
             } else {
                 filterChain.doFilter(servletRequest, servletResponse);
             }
+        } catch (NullPointerException e) {
+            logger.error("토큰이 null입니다.", e);
+            // 적절한 예외 처리 후 리턴 또는 다른 작업 수행
         } catch (Exception e) {
-            logger.info("잘못된 접근");
-
+            logger.error("토큰 검증 중 오류가 발생했습니다.", e);
+            // 적절한 예외 처리 후 리턴 또는 다른 작업 수행
         }
 
     }

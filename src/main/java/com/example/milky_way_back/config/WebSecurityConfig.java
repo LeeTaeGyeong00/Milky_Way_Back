@@ -34,7 +34,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests((request) -> request.requestMatchers(PathRequest.toStaticResources()
                                 .atCommonLocations()).permitAll()
                         .antMatchers("/signup", "/login", "/signup/checkId").permitAll() // 해당 경로는 모두 접근 가능
-                        .anyRequest().authenticated() /* todo 인증 권한 설정 */
+                        .anyRequest().permitAll() /* todo 인증 권한 설정 */
                 )
                 .cors()
                 .and()// cors config 적용

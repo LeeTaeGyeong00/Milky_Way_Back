@@ -15,10 +15,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -35,8 +38,11 @@ public class TokenProvider {
     private final Key secretKey;
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserDetailService userDetailsService;
 
-    public TokenProvider(@Value("${jwt.secret.key}") String key, MemberRepository memberRepository, RefreshTokenRepository refreshTokenRepository) {
+
+    public TokenProvider(@Value("${jwt.secret.key}") String key, MemberRepository memberRepository, RefreshTokenRepository refreshTokenRepository, UserDetailService userDetailsService) {
+        this.userDetailsService = userDetailsService;
         byte[] keyBytes = Decoders.BASE64.decode(key);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.memberRepository = memberRepository;
@@ -104,15 +110,17 @@ public class TokenProvider {
                 .build();
     }
 
-    // jwt 복호화 하여 토큰 정보 꺼내기
-    public Authentication getAuthentication(String accessToken) {
-        Claims claims = parseClaims(accessToken);
+    public Authentication getAuthentication(String token) {
 
+        Claims claims = parseClaims(token);
+
+        // 권한 정보가 있는지 확인
         if (claims.get("auth") == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+            // 어세스 토큰인 경우에만 권한 정보가 필요하므로 리프레시 토큰일 경우에는 권한 정보가 없다는 예외를 발생시키지 않음
+            return null;
         }
 
-        // 클레임에서 권한 정보 가져오기
+        // 어세스 토큰인 경우에만 권한 정보 생성
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get("auth").toString().split(","))
                         .map(SimpleGrantedAuthority::new)
@@ -121,6 +129,20 @@ public class TokenProvider {
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+    }
+
+    // 리프레시 토큰을 기반으로 Authentication 객체 생성
+    public Authentication getAuthenticationFromRefreshToken(String refreshToken) {
+        // 리프레시 토큰을 파싱하여 사용자 정보를 추출하여 Authentication 객체를 생성
+        RefreshToken token = refreshTokenRepository.findByAuthRefreshToken(refreshToken);
+        if (token != null) {
+            Member member = token.getMember();
+            if (member != null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(String.valueOf(member.getMemberId()));
+                return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            }
+        }
+        return null;
     }
 
     // 토큰 검증 : response entity 형태로 메세지 반환
