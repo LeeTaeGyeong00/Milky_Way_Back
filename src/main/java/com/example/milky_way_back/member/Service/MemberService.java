@@ -311,6 +311,8 @@ public ResponseEntity<MyPageResponse> getMemberInfo(MyPageResponse myPageRespons
         Dibs dibs = dibsRepository.findByArticleNoAndMemberNo(article, member)
                 .orElseThrow(() -> new DibsNotFoundException("Like not found for this article"));
 
+        article.setLikes(article.getLikes() - 1);
+
         dibsRepository.delete(dibs);
     }
 }

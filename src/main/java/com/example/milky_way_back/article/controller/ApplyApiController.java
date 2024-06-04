@@ -80,7 +80,9 @@ public class ApplyApiController {
         Apply apply = applyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Apply not found with ID: " + id));
         // memberNo를 사용하여 기본 정보 조회
-        return applyService.findBasicInfo(apply.getMemberId().getMemberNo());
+        System.out.println(apply.getMemberId());
+        System.out.println(apply.getMemberId().getMemberNo());
+        return applyService.findBasicInfo(request ,apply.getMemberId().getMemberNo());
     }
 
     // 자격증, 경력 조회
@@ -90,6 +92,8 @@ public class ApplyApiController {
         Apply apply = applyRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Apply not found with ID: " + id));
         // memberNo를 사용하여 경력 및 자격증 정보 조회
-        return applyService.findCareerAndCertification(apply.getMemberId().getMemberNo());
+        System.out.println(apply.getMemberId());
+        System.out.println(apply.getMemberId().getMemberNo());
+        return applyService.findCareerAndCertification(request ,apply.getMemberId().getMemberNo());
     }
 }
