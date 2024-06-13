@@ -3,6 +3,7 @@ package com.example.milky_way_back.member.Controller;
 
 import com.example.milky_way_back.member.Dto.*;
 import com.example.milky_way_back.member.Service.MemberService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @RequiredArgsConstructor
 @RestController
+@Tag(name = "회원 관련 API", description = "등록 및 확인, 토큰 관련 API")
 public class MemberController {
     private final MemberService memberService;
 

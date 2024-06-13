@@ -14,6 +14,7 @@ import com.example.milky_way_back.member.Entity.RefreshToken;
 import com.example.milky_way_back.member.Jwt.TokenProvider;
 import com.example.milky_way_back.member.Repository.MemberRepository;
 import com.example.milky_way_back.member.Repository.RefreshTokenRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,7 @@ public class MemberService {
     private UserDetailsService userDetailService;
 
     // 회원가입
+    @Operation(summary = "회원가입", description = "회원가입 할 때 사용하는 API")
     public ResponseEntity<StatusResponse> signup(SignupRequest request) {
 
         String memberId = request.getId();
